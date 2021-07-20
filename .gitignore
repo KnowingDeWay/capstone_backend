@@ -3,3 +3,5 @@
 ################################################################################
 
 /Ext_Dynamics_API/Ext_Dynamics_API/bin/Debug/net5.0
+/Ext_Dynamics_API/Ext_Dynamics_API/obj
+/Ext_Dynamics_API/.vs/Ext_Dynamics_API
