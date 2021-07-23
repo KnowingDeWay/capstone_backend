@@ -7,10 +7,8 @@ using System.IdentityModel.Tokens.Jwt;
 
 namespace Ext_Dynamics_API.Models
 {
-    public class ApplicationUserAccount
+    public class ApplicationUserAccount : EntityBase
     {
-        [Key]
-        public int AppUserId { get; set; }
         public string AppUserName { get; set; }
         public string UserPassword { get; set; }
 

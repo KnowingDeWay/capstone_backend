@@ -1,3 +1,7 @@
 {
-  "db_conn_str": "Server=localhost\\SQLEXPRESS;Database=Extensible_Dynamics_Db;Trusted_Connection=True;"
+  "db_conn_str": "Server=localhost\\SQLEXPRESS;Database=Extensible_Dynamics_Db;Trusted_Connection=True;",
+  "token_security_key": "Gpk1Qe7KbTAq6yzQFSXMTNm0Yrwa6UwHwLnN9mzeczLqlzmVGpSFb5eraC1CeXcP",
+  "token_issuer": "ext_dynamics",
+  "token_audience": "user_instructors",
+  "token_auth_header": "Authorization:"
 }
