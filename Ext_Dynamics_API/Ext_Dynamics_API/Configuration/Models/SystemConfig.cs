@@ -24,6 +24,9 @@ namespace Ext_Dynamics_API.Configuration.Models
         [JsonProperty(PropertyName = "token_auth_header")]
         public readonly string authHeader;
 
+        [JsonProperty(PropertyName = "test_db_conn_str")]
+        public readonly string testDbConnString;
+
         public static SystemConfig LoadConfig()
         {
             var currPath = Environment.CurrentDirectory;

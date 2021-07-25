@@ -54,7 +54,9 @@ namespace Ext_Dynamics_API.Controllers
                 response.ResponseMessage = "Failed to generate Authentication token";
                 return new NotFoundObjectResult(response);
             }
-            return new OkObjectResult(token);
+            response.ResponseMessage = "Successful Login";
+            response.ResponseToken = token;
+            return new OkObjectResult(response);
 
         }
 
@@ -63,11 +65,22 @@ namespace Ext_Dynamics_API.Controllers
         [Route("LogoutUser")]
         public ActionResult LogoutUser()
         {
-            var encodedToken = Request.Headers[_config.authHeader];
+            var encodedToken = _tokenManager.ReadToken(Request.Headers[_config.authHeader]);
             var handler = new JwtSecurityTokenHandler();
-            var decodedToken = handler.ReadJwtToken(encodedToken);
+            JwtSecurityToken decodedToken;
 
-            if(_tokenManager.IsTokenValid(encodedToken))
+            try
+            {
+                decodedToken = handler.ReadJwtToken(encodedToken);
+            }
+            catch (ArgumentException)
+            {
+                return new UnauthorizedObjectResult(new AuthResponse() { 
+                    ResponseMessage = "User Token Is Not Valid"
+                });
+            }
+
+            if (_tokenManager.IsTokenValid(encodedToken))
             {
                 var userId = _tokenManager.GetUserIdFromToken(decodedToken);
                 if(userId != -1)

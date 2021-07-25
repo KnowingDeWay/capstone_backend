@@ -13,6 +13,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using System.Globalization;
+using Ext_Dynamics_API.Enums;
 
 namespace Ext_Dynamics_API.Security
 {
@@ -42,6 +43,7 @@ namespace Ext_Dynamics_API.Security
             claims.Add(new Claim("jti", jwtId, ClaimValueTypes.String));
             claims.Add(new Claim("user_id", $"{user.Id}", ClaimValueTypes.Integer32));
             claims.Add(new Claim("user_name", $"{user.AppUserName}", ClaimValueTypes.String));
+            claims.Add(new Claim("user_type", $"{user.UserType}", ClaimValueTypes.String));
 
             var token = new JwtSecurityToken(
                     issuer: _config.tokenIssuer,
@@ -64,6 +66,11 @@ namespace Ext_Dynamics_API.Security
             }
 
             return encodedToken;
+        }
+
+        public string ReadToken(string authHeader)
+        {
+            return authHeader.Split("Bearer ")[1];
         }
 
         public void DeleteUserTokens(int userId)
@@ -93,13 +100,24 @@ namespace Ext_Dynamics_API.Security
             return userId;
         }
 
+        public UserType GetUserTypeFromToken(JwtSecurityToken token)
+        {
+            var userClaim = token.Claims.Where(x => x.Type.Equals("user_type")).FirstOrDefault();
+            object type;
+            if (Enum.TryParse(typeof(UserType), userClaim.Value, true, out type))
+            {
+                return (UserType)type;
+            }
+            return UserType.Invalid;
+        }
+
         private void DeleteInavlidTokens(int userId)
         {
             var user = _dbCtx.UserAccounts.Where(x => x.Id == userId).FirstOrDefault();
             if (user != null)
             {
                 var tokenEntries = _dbCtx.UserTokenEntries.Where(x => 
-                EpochTime.GetIntDate(DateTime.Now) > EpochTime.GetIntDate(x.ExpiryDate)
+                DateTime.UtcNow > x.ExpiryDate
                 );
                 _dbCtx.UserTokenEntries.RemoveRange(tokenEntries);
                 _dbCtx.SaveChanges();
@@ -108,12 +126,13 @@ namespace Ext_Dynamics_API.Security
 
         private bool SaveToken(string token, int userId, DateTime expiry)
         {
-            _dbCtx.UserTokenEntries.Add(new UserTokenEntry()
+            var newTokEntry = new UserTokenEntry()
             {
                 EncodedToken = token,
                 AppUserId = userId,
                 ExpiryDate = expiry
-            });
+            };
+            _dbCtx.UserTokenEntries.Add(newTokEntry);
             try
             {
                 _dbCtx.SaveChanges();
@@ -146,6 +165,8 @@ namespace Ext_Dynamics_API.Security
             }
             catch (Exception)
             {
+                // Rollback token entry
+                _dbCtx.UserTokenEntries.Remove(newTokEntry);
                 return false;
             }
         }

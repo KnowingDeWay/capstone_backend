@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.31424.327
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ext_Dynamics_API", "Ext_Dynamics_API\Ext_Dynamics_API.csproj", "{3A80655D-0874-4309-83E4-3175DA3E95BA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ext_Dynamics_API", "Ext_Dynamics_API\Ext_Dynamics_API.csproj", "{3A80655D-0874-4309-83E4-3175DA3E95BA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ext_Dynamics_API_Tests", "Ext_Dynamics_API_Tests\Ext_Dynamics_API_Tests.csproj", "{17A9CA15-0108-4E62-AB3B-2848F1A4D5CB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{3A80655D-0874-4309-83E4-3175DA3E95BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3A80655D-0874-4309-83E4-3175DA3E95BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3A80655D-0874-4309-83E4-3175DA3E95BA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{17A9CA15-0108-4E62-AB3B-2848F1A4D5CB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{17A9CA15-0108-4E62-AB3B-2848F1A4D5CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{17A9CA15-0108-4E62-AB3B-2848F1A4D5CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{17A9CA15-0108-4E62-AB3B-2848F1A4D5CB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
