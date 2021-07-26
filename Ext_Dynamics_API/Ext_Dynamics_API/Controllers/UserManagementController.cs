@@ -31,25 +31,66 @@ namespace Ext_Dynamics_API.Controllers
             _scryptHasher = new ScryptEncoder();
         }
 
+        [HttpGet]
+        [Authorize]
+        [Route("ViewUserProfile")]
+        public ActionResult ViewUserProfile()
+        {
+            var encodedToken = _tokenManager.ReadToken(Request.Headers[_config.authHeader]);
+            var handler = new JwtSecurityTokenHandler();
+            JwtSecurityToken decodedToken;
+
+            var objResponse = new ObjectResponse<ApplicationUserAccount>();
+
+            try
+            {
+                decodedToken = handler.ReadJwtToken(encodedToken);
+            }
+            catch (ArgumentException)
+            {
+                objResponse.Message = "User Token Is Not Valid";
+                return new UnauthorizedObjectResult(objResponse);
+            }
+
+            var userId = _tokenManager.GetUserIdFromToken(decodedToken);
+
+            if(userId == -1)
+            {
+                objResponse.Message = "User Not Found";
+                return new NotFoundObjectResult(objResponse);
+            }
+
+            var user = _dbCtx.UserAccounts.Where(x => x.Id == userId).FirstOrDefault();
+
+            if (user == null)
+            {
+                objResponse.Message = "User Not Found";
+                return new NotFoundObjectResult(objResponse);
+            }
+
+            objResponse.Message = $"Retreived User Profile for: {user.AppUserName}";
+            objResponse.Value = user;
+
+            return new OkObjectResult(objResponse);
+
+        }
+
         [HttpPost]
         [Route("RegisterUser")]
         public ActionResult RegisterUser([FromBody] ApplicationUserAccount userAccount)
         {
-            var objResponse = new ObjectResponse();
 
             // App user name must be at least 3 characters long and must be alphanumeric
             if (!string.IsNullOrWhiteSpace(userAccount.AppUserName))
             {
                 if(userAccount.AppUserName.Length < 3 || !Regex.IsMatch(userAccount.AppUserName, "^[a-zA-Z0-9]+$"))
                 {
-                    objResponse.Message = "Username cannot be empty and must contain two alphanumeric characters";
-                    return new BadRequestObjectResult(objResponse);
+                    return new BadRequestObjectResult("Username cannot be empty and must contain two alphanumeric characters");
                 }
             }
             else
             {
-                objResponse.Message = "Username cannot be empty and must contain two alphanumeric characters";
-                return new BadRequestObjectResult(objResponse);
+                return new BadRequestObjectResult("Username cannot be empty and must contain two alphanumeric characters");
             }
 
             // Password must be at least 8 characters long
@@ -57,22 +98,19 @@ namespace Ext_Dynamics_API.Controllers
             {
                 if(userAccount.UserPassword.Length < 8)
                 {
-                    objResponse.Message = "Password must be 8 characters long";
-                    return new BadRequestObjectResult(objResponse);
+                    return new BadRequestObjectResult("Password must be 8 characters long");
                 }
             }
             else
             {
-                objResponse.Message = "Password must be 8 characters long";
-                return new BadRequestObjectResult(objResponse);
+                return new BadRequestObjectResult("Password must be 8 characters long");
             }
 
             // Usernames must be also unique and they are also alternate keys in the database
             var existingUser = _dbCtx.UserAccounts.Where(x => x.AppUserName.Equals(userAccount.AppUserName)).FirstOrDefault();
             if(existingUser != null)
             {
-                objResponse.Message = $"Username {userAccount.AppUserName} is already taken";
-                return new BadRequestObjectResult(objResponse);
+                return new BadRequestObjectResult($"Username {userAccount.AppUserName} is already taken");
             }
 
             var newUser = new ApplicationUserAccount()
@@ -89,21 +127,18 @@ namespace Ext_Dynamics_API.Controllers
             }
             catch(Exception)
             {
-                objResponse.Message = "Failed to Create New User";
                 // Rollback the addition of a new user
                 _dbCtx.UserAccounts.Remove(newUser);
-                return new NotFoundObjectResult(objResponse);
+                return new NotFoundObjectResult("Failed to Create New User");
             }
 
             var token = _tokenManager.IssueToken(newUser);
             if (token.Equals(""))
             {
-                objResponse.Message = "Failed to Generate Token";
-                return new NotFoundObjectResult(objResponse);
+                return new NotFoundObjectResult("Failed to Generate Token");
             }
 
-            objResponse.Message = $"Successfully Registered new User: {userAccount.AppUserName}";
-            return new OkObjectResult(objResponse);
+            return new OkObjectResult($"Successfully Registered new User: {userAccount.AppUserName}");
         }
 
         [HttpDelete]
@@ -115,15 +150,13 @@ namespace Ext_Dynamics_API.Controllers
             var handler = new JwtSecurityTokenHandler();
             JwtSecurityToken decodedToken;
 
-            var objResponse = new ObjectResponse();
             try
             {
                 decodedToken = handler.ReadJwtToken(encodedToken);
             }
             catch(ArgumentException)
             {
-                objResponse.Message = "User Token Is Not Valid";
-                return new UnauthorizedObjectResult(objResponse);
+                return new UnauthorizedObjectResult("User Token Is Not Valid");
             }
 
             if (_tokenManager.IsTokenValid(encodedToken))
@@ -137,22 +170,20 @@ namespace Ext_Dynamics_API.Controllers
                     try
                     {
                         _dbCtx.SaveChanges();
-                        objResponse.Message = $"User Account {user.AppUserName} was successfully deleted!";
-                        return new OkObjectResult(objResponse);
+                        return new OkObjectResult($"User Account {user.AppUserName} was successfully deleted!");
                     }
                     catch (Exception)
                     {
                         // Rollback user deleteion
                         _dbCtx.UserAccounts.Add(user);
-                        objResponse.Message = "Failed to Delete User Profile";
-                        return new NotFoundObjectResult(objResponse);
+                        return new NotFoundObjectResult("Failed to Delete User Profile");
                     }
                 }
-                objResponse.Message = "Failed to find User";
-                return new NotFoundObjectResult(objResponse);
+
+                return new NotFoundObjectResult("Failed to find User");
             }
-            objResponse.Message = "User Token Is Not Valid";
-            return new UnauthorizedObjectResult(objResponse);
+
+            return new UnauthorizedObjectResult("User Token Is Not Valid");
         }
 
         [HttpDelete]
@@ -164,22 +195,19 @@ namespace Ext_Dynamics_API.Controllers
             var handler = new JwtSecurityTokenHandler();
             JwtSecurityToken decodedToken;
 
-            var objResponse = new ObjectResponse();
             try
             {
                 decodedToken = handler.ReadJwtToken(encodedToken);
             }
             catch (ArgumentException)
             {
-                objResponse.Message = "User Token Is Not Valid";
-                return new UnauthorizedObjectResult(objResponse);
+                return new UnauthorizedObjectResult("User Token Is Not Valid");
             }
 
             // A user must be an admin to delete other users
             if (_tokenManager.GetUserTypeFromToken(decodedToken) != UserType.System_Admin)
             {
-                objResponse.Message = "You are not Authorized to Perform this Function, You must be a System Admin";
-                return new UnauthorizedObjectResult(objResponse);
+                return new UnauthorizedObjectResult("You are not Authorized to Perform this Function, You must be a System Admin");
             }
 
             var user = _dbCtx.UserAccounts.Where(x => x.Id == userId).FirstOrDefault();
@@ -189,19 +217,17 @@ namespace Ext_Dynamics_API.Controllers
                 try
                 {
                     _dbCtx.SaveChanges();
-                    objResponse.Message = $"User Account {user.AppUserName} was successfully deleted!";
-                    return new OkObjectResult(objResponse);
+                    return new OkObjectResult($"User Account {user.AppUserName} was successfully deleted!");
                 }
                 catch (Exception)
                 {
                     // Rollback user deleteion
                     _dbCtx.UserAccounts.Add(user);
-                    objResponse.Message = "Failed to Delete User Profile";
-                    return new NotFoundObjectResult(objResponse);
+                    return new NotFoundObjectResult("Failed to Delete User Profile");
                 }
             }
-            objResponse.Message = "Failed to find User";
-            return new NotFoundObjectResult(objResponse);
+
+            return new NotFoundObjectResult("Failed to find User");
         }
     }
 }

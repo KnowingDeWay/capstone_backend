@@ -89,6 +89,76 @@ namespace Ext_Dynamics_API_Tests
         }
 
         [Fact]
+        public void Get_User_Profile_Valid_Creds()
+        {
+            var controller = new AuthController(_dbCtx);
+            var creds = new LoginCredentials()
+            {
+                Username = "Nolen",
+                Password = "ice_queen"
+            };
+            var result = controller.LoginUser(creds) as ObjectResult;
+
+            var token = ((AuthResponse)result.Value).ResponseToken;
+
+            var httpContext = new DefaultHttpContext();
+            httpContext.Request.Headers[_config.authHeader] = $"Bearer {token}";
+
+            var controllerContext = new ControllerContext() { HttpContext = httpContext };
+
+            var userController = new UserManagementController(_dbCtx);
+
+            userController.ControllerContext = controllerContext;
+
+            var userControllerResult = userController.ViewUserProfile();
+
+            var objResult = userControllerResult as ObjectResult;
+
+            var response = (ObjectResponse<ApplicationUserAccount>)objResult.Value;
+
+            var profile = response.Value;
+
+            var outcome = profile != null;
+
+            Assert.True(outcome);
+        }
+
+        [Fact]
+        public void Get_User_Profile_Invalid_Creds()
+        {
+            var controller = new AuthController(_dbCtx);
+            var creds = new LoginCredentials()
+            {
+                Username = "Nolen",
+                Password = "icy_gurl"
+            };
+            var result = controller.LoginUser(creds) as ObjectResult;
+
+            var token = ((AuthResponse)result.Value).ResponseToken;
+
+            var httpContext = new DefaultHttpContext();
+            httpContext.Request.Headers[_config.authHeader] = $"Bearer {token}";
+
+            var controllerContext = new ControllerContext() { HttpContext = httpContext };
+
+            var userController = new UserManagementController(_dbCtx);
+
+            userController.ControllerContext = controllerContext;
+
+            var userControllerResult = userController.ViewUserProfile();
+
+            var objResult = userControllerResult as ObjectResult;
+
+            var response = (ObjectResponse<ApplicationUserAccount>)objResult.Value;
+
+            var profile = response.Value;
+
+            var outcome = profile == null;
+
+            Assert.True(outcome);
+        }
+
+        [Fact]
         public void Register_User_Valid_Creds()
         {
             var controller = new UserManagementController(_dbCtx);

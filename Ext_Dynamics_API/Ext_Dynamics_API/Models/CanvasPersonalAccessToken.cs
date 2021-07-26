@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Ext_Dynamics_API.Models
 {
-    public class CanvasPersonalAccessTokens : EntityBase
+    public class CanvasPersonalAccessToken : EntityBase
     {
         public string TokenName { get; set; }
         

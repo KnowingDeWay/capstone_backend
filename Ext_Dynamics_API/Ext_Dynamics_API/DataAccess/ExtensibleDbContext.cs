@@ -11,7 +11,7 @@ namespace Ext_Dynamics_API.DataAccess
     public class ExtensibleDbContext : DbContext
     {
         public DbSet<ApplicationUserAccount> UserAccounts { get; set; }
-        public DbSet<CanvasPersonalAccessTokens> PersonalAccessTokens { get; set; }
+        public DbSet<CanvasPersonalAccessToken> PersonalAccessTokens { get; set; }
         public DbSet<UserTokenEntry> UserTokenEntries { get; set; }
 
         public ExtensibleDbContext()
@@ -34,8 +34,8 @@ namespace Ext_Dynamics_API.DataAccess
             modelBuilder.Entity<ApplicationUserAccount>().Property(x => x.RowVersion).IsRowVersion();
             modelBuilder.Entity<ApplicationUserAccount>().ToTable("App_Users").HasAlternateKey(x => x.AppUserName);
 
-            modelBuilder.Entity<CanvasPersonalAccessTokens>().Property(x => x.RowVersion).IsRowVersion();
-            modelBuilder.Entity<CanvasPersonalAccessTokens>().ToTable("Personal_Access_Tokens");
+            modelBuilder.Entity<CanvasPersonalAccessToken>().Property(x => x.RowVersion).IsRowVersion();
+            modelBuilder.Entity<CanvasPersonalAccessToken>().ToTable("Personal_Access_Tokens");
 
             modelBuilder.Entity<UserTokenEntry>().Property(x => x.RowVersion).IsRowVersion();
             modelBuilder.Entity<UserTokenEntry>().ToTable("Token_Entries");

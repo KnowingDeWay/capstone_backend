@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 namespace Ext_Dynamics_API.ResponseModels
 {
     [NotMapped]
-    public class ObjectResponse
+    public class ObjectResponse<T>
     {
         public string Message { get; set; }
-        public object Value { get; set; }
+        public T Value { get; set; }
     }
 }
