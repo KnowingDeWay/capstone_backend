@@ -30,6 +30,7 @@ namespace Ext_Dynamics_API.Controllers
             _dbCtx = dbCtx;
             _config = SystemConfig.LoadConfig();
             _tokenManager = new TokenManager(_dbCtx, _config);
+            _canvasTokenManager = new CanvasTokenManager(_dbCtx);
         }
 
         [HttpGet]
@@ -74,7 +75,7 @@ namespace Ext_Dynamics_API.Controllers
         [HttpGet]
         [Authorize]
         [Route("GetUserAccessToken/{id}")]
-        public ActionResult GetUserAccessTokens([FromRoute] int patId)
+        public ActionResult GetUserAccessToken([FromRoute] int patId)
         {
             var encodedToken = _tokenManager.ReadToken(Request.Headers[_config.authHeader]);
             var handler = new JwtSecurityTokenHandler();
