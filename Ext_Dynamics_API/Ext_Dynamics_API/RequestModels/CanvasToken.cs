@@ -10,6 +10,6 @@ namespace Ext_Dynamics_API.RequestModels
     public class CanvasToken
     {
         public string TokenName { get; set; }
-        public string EncodedToken { get; set; }
+        public string ApiKey { get; set; }
     }
 }

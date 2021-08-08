@@ -38,7 +38,7 @@ namespace Ext_Dynamics_API.Controllers
         [Route("GetUserAccessTokens")]
         public ActionResult GetUserAccessTokens()
         {
-            var encodedToken = _tokenManager.ReadToken(Request.Headers[_config.authHeader]);
+            var encodedToken = _tokenManager.ReadAndValidateToken(Request.Headers[_config.authHeader]);
             var handler = new JwtSecurityTokenHandler();
             JwtSecurityToken decodedToken;
 
@@ -77,7 +77,7 @@ namespace Ext_Dynamics_API.Controllers
         [Route("GetUserAccessToken/{id}")]
         public ActionResult GetUserAccessToken([FromRoute] int patId)
         {
-            var encodedToken = _tokenManager.ReadToken(Request.Headers[_config.authHeader]);
+            var encodedToken = _tokenManager.ReadAndValidateToken(Request.Headers[_config.authHeader]);
             var handler = new JwtSecurityTokenHandler();
             JwtSecurityToken decodedToken;
 
@@ -125,7 +125,7 @@ namespace Ext_Dynamics_API.Controllers
         [Route("AddCanvasToken")]
         public ActionResult AddCanvasToken([FromBody] CanvasToken canvasToken)
         {
-            var encodedToken = _tokenManager.ReadToken(Request.Headers[_config.authHeader]);
+            var encodedToken = _tokenManager.ReadAndValidateToken(Request.Headers[_config.authHeader]);
             var handler = new JwtSecurityTokenHandler();
             JwtSecurityToken decodedToken;
 
@@ -148,7 +148,7 @@ namespace Ext_Dynamics_API.Controllers
             var pat = new CanvasPersonalAccessToken()
             {
                 TokenName = canvasToken.TokenName,
-                AccessToken = canvasToken.EncodedToken,
+                AccessToken = canvasToken.ApiKey,
                 AppUserId = userId
             };
 
@@ -172,7 +172,7 @@ namespace Ext_Dynamics_API.Controllers
         [Route("EditAccessToken")]
         public ActionResult EditAccessToken([FromBody] CanvasPersonalAccessToken canvasToken)
         {
-            var encodedToken = _tokenManager.ReadToken(Request.Headers[_config.authHeader]);
+            var encodedToken = _tokenManager.ReadAndValidateToken(Request.Headers[_config.authHeader]);
             var handler = new JwtSecurityTokenHandler();
             JwtSecurityToken decodedToken;
 
@@ -206,10 +206,10 @@ namespace Ext_Dynamics_API.Controllers
 
         [HttpDelete]
         [Authorize]
-        [Route("DeleteAccessToken")]
-        public ActionResult DeleteAccessToken([FromBody] CanvasPersonalAccessToken canvasToken)
+        [Route("DeleteAccessToken/{patId}")]
+        public ActionResult DeleteAccessToken([FromRoute] int patId)
         {
-            var encodedToken = _tokenManager.ReadToken(Request.Headers[_config.authHeader]);
+            var encodedToken = _tokenManager.ReadAndValidateToken(Request.Headers[_config.authHeader]);
             var handler = new JwtSecurityTokenHandler();
             JwtSecurityToken decodedToken;
 
@@ -223,6 +223,13 @@ namespace Ext_Dynamics_API.Controllers
             }
 
             var userId = _tokenManager.GetUserIdFromToken(decodedToken);
+
+            var canvasToken = _dbCtx.PersonalAccessTokens.Where(x => x.Id == patId).FirstOrDefault();
+
+            if(canvasToken == null)
+            {
+                return new NotFoundObjectResult($"Could not find token with id: {patId}");
+            }
 
             if (userId == canvasToken.AppUserId)
             {

@@ -36,11 +36,11 @@ namespace Ext_Dynamics_API.Controllers
         [Route("ViewUserProfile")]
         public ActionResult ViewUserProfile()
         {
-            var encodedToken = _tokenManager.ReadToken(Request.Headers[_config.authHeader]);
+            var encodedToken = _tokenManager.ReadAndValidateToken(Request.Headers[_config.authHeader]);
             var handler = new JwtSecurityTokenHandler();
             JwtSecurityToken decodedToken;
 
-            var objResponse = new ObjectResponse<ApplicationUserAccount>();
+            var objResponse = new ObjectResponse<UserProfile>();
 
             try
             {
@@ -69,7 +69,10 @@ namespace Ext_Dynamics_API.Controllers
             }
 
             objResponse.Message = $"Retreived User Profile for: {user.AppUserName}";
-            objResponse.Value = user;
+            objResponse.Value = new UserProfile { 
+                AppUserName = user.AppUserName,
+                UserType = user.UserType
+            };
 
             return new OkObjectResult(objResponse);
 
@@ -146,7 +149,7 @@ namespace Ext_Dynamics_API.Controllers
         [Authorize]
         public ActionResult DeleteUser()
         {
-            var encodedToken = _tokenManager.ReadToken(Request.Headers[_config.authHeader]);
+            var encodedToken = _tokenManager.ReadAndValidateToken(Request.Headers[_config.authHeader]);
             var handler = new JwtSecurityTokenHandler();
             JwtSecurityToken decodedToken;
 
@@ -191,7 +194,7 @@ namespace Ext_Dynamics_API.Controllers
         [Authorize]
         public ActionResult DeleteUserById([FromRoute] int userId)
         {
-            var encodedToken = _tokenManager.ReadToken(Request.Headers[_config.authHeader]);
+            var encodedToken = _tokenManager.ReadAndValidateToken(Request.Headers[_config.authHeader]);
             var handler = new JwtSecurityTokenHandler();
             JwtSecurityToken decodedToken;
 

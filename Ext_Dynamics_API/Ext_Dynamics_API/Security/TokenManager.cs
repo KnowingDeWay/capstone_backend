@@ -68,9 +68,10 @@ namespace Ext_Dynamics_API.Security
             return encodedToken;
         }
 
-        public string ReadToken(string authHeader)
+        public string ReadAndValidateToken(string authHeader)
         {
-            return authHeader.Split("Bearer ")[1];
+            var token = authHeader.Split("Bearer ")[1];
+            return IsTokenValid(token) ? token : "";
         }
 
         public void DeleteUserTokens(int userId)
@@ -86,7 +87,7 @@ namespace Ext_Dynamics_API.Security
 
         public bool IsTokenValid(string encodedToken)
         {
-            return _dbCtx.UserTokenEntries.Where(x => x.EncodedToken.Equals(encodedToken)).FirstOrDefault() != null;
+            return _dbCtx.UserTokenEntries.Where(x => x.EncodedToken.Equals(encodedToken) && x.ExpiryDate > DateTime.UtcNow).FirstOrDefault() != null;
         }
 
         public int GetUserIdFromToken(JwtSecurityToken token)

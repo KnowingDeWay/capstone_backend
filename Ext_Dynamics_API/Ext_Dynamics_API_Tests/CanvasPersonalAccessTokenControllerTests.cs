@@ -123,6 +123,32 @@ namespace Ext_Dynamics_API_Tests
 
             _dbCtx.PersonalAccessTokens.AddRange(secondUserTokens);
 
+            var thirdUser = _dbCtx.UserAccounts.Where(x => x.AppUserName.Equals("Cupcake Mistress")).FirstOrDefault();
+
+            var thirdUserTokens = new List<CanvasPersonalAccessToken>()
+            {
+                new CanvasPersonalAccessToken
+                {
+                    TokenName = "Vanilla Cupcake",
+                    AccessToken = _canvasTokenHelper.CanvasTokenGenerator(),
+                    AppUserId = thirdUser.Id
+                },
+                new CanvasPersonalAccessToken
+                {
+                    TokenName = "Blueberry Cupcake",
+                    AccessToken = _canvasTokenHelper.CanvasTokenGenerator(),
+                    AppUserId = thirdUser.Id
+                },
+                new CanvasPersonalAccessToken
+                {
+                    TokenName = "Choc Chip Cupcake",
+                    AccessToken = _canvasTokenHelper.CanvasTokenGenerator(),
+                    AppUserId = thirdUser.Id
+                }
+            };
+
+            _dbCtx.PersonalAccessTokens.AddRange(thirdUserTokens);
+
             _dbCtx.SaveChanges();
         }
 
@@ -328,7 +354,7 @@ namespace Ext_Dynamics_API_Tests
             canvasController.AddCanvasToken(new CanvasToken()
             {
                 TokenName = "NewToken",
-                EncodedToken = _canvasTokenHelper.CanvasTokenGenerator()
+                ApiKey = _canvasTokenHelper.CanvasTokenGenerator()
             });
 
             var tokenAdded = _dbCtx.PersonalAccessTokens.Where(x => x.TokenName.Equals("NewToken")).FirstOrDefault();
@@ -363,7 +389,7 @@ namespace Ext_Dynamics_API_Tests
             canvasController.AddCanvasToken(new CanvasToken()
             {
                 TokenName = "NewToken2",
-                EncodedToken = _canvasTokenHelper.CanvasTokenGenerator()
+                ApiKey = _canvasTokenHelper.CanvasTokenGenerator()
             });
 
             var tokenAdded = _dbCtx.PersonalAccessTokens.Where(x => x.TokenName.Equals("NewToken2")).FirstOrDefault();
@@ -508,19 +534,94 @@ namespace Ext_Dynamics_API_Tests
         [Fact]
         public void Delete_Access_Token_Valid_User()
         {
+            var controller = new AuthController(_dbCtx);
+            var creds = new LoginCredentials()
+            {
+                Username = "Cupcake Mistress",
+                Password = "cupcakes24/7/365"
+            };
+            var result = controller.LoginUser(creds) as ObjectResult;
 
+            var token = ((AuthResponse)result.Value).ResponseToken;
+
+            var httpContext = new DefaultHttpContext();
+            httpContext.Request.Headers[_config.authHeader] = $"Bearer {token}";
+
+            var controllerContext = new ControllerContext() { HttpContext = httpContext };
+
+            var canvasController = new CanvasAccessTokenController(_dbCtx);
+
+            canvasController.ControllerContext = controllerContext;
+
+            var patToDelete = _dbCtx.PersonalAccessTokens.Where(x => x.TokenName.Equals("Vanilla Cupcake")).FirstOrDefault();
+
+            canvasController.DeleteAccessToken(patToDelete.Id);
+
+            var outcome = _dbCtx.PersonalAccessTokens.Where(x => x.Id == patToDelete.Id).FirstOrDefault() == null;
+
+            Assert.True(outcome);
         }
 
         [Fact]
         public void Delete_Access_Token_Wrong_User_But_Valid_User()
         {
+            var controller = new AuthController(_dbCtx);
+            var creds = new LoginCredentials()
+            {
+                Username = "Queen Nolen",
+                Password = "ice_queen"
+            };
+            var result = controller.LoginUser(creds) as ObjectResult;
 
+            var token = ((AuthResponse)result.Value).ResponseToken;
+
+            var httpContext = new DefaultHttpContext();
+            httpContext.Request.Headers[_config.authHeader] = $"Bearer {token}";
+
+            var controllerContext = new ControllerContext() { HttpContext = httpContext };
+
+            var canvasController = new CanvasAccessTokenController(_dbCtx);
+
+            canvasController.ControllerContext = controllerContext;
+
+            var patToDelete = _dbCtx.PersonalAccessTokens.Where(x => x.TokenName.Equals("Blueberry Cupcake")).FirstOrDefault();
+
+            canvasController.DeleteAccessToken(patToDelete.Id);
+
+            var outcome = _dbCtx.PersonalAccessTokens.Where(x => x.Id == patToDelete.Id).FirstOrDefault() != null;
+
+            Assert.True(outcome);
         }
 
         [Fact]
         public void Delete_Access_Token_Invalid_User()
         {
+            var controller = new AuthController(_dbCtx);
+            var creds = new LoginCredentials()
+            {
+                Username = "Cupcake Mistress",
+                Password = "cupcakes"
+            };
+            var result = controller.LoginUser(creds) as ObjectResult;
 
+            var token = ((AuthResponse)result.Value).ResponseToken;
+
+            var httpContext = new DefaultHttpContext();
+            httpContext.Request.Headers[_config.authHeader] = $"Bearer {token}";
+
+            var controllerContext = new ControllerContext() { HttpContext = httpContext };
+
+            var canvasController = new CanvasAccessTokenController(_dbCtx);
+
+            canvasController.ControllerContext = controllerContext;
+
+            var patToDelete = _dbCtx.PersonalAccessTokens.Where(x => x.TokenName.Equals("Choc Chip Cupcake")).FirstOrDefault();
+
+            canvasController.DeleteAccessToken(patToDelete.Id);
+
+            var outcome = _dbCtx.PersonalAccessTokens.Where(x => x.Id == patToDelete.Id).FirstOrDefault() != null;
+
+            Assert.True(outcome);
         }
 
         public void Dispose()

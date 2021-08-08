@@ -114,7 +114,7 @@ namespace Ext_Dynamics_API_Tests
 
             var objResult = userControllerResult as ObjectResult;
 
-            var response = (ObjectResponse<ApplicationUserAccount>)objResult.Value;
+            var response = (ObjectResponse<UserProfile>)objResult.Value;
 
             var profile = response.Value;
 
@@ -149,7 +149,7 @@ namespace Ext_Dynamics_API_Tests
 
             var objResult = userControllerResult as ObjectResult;
 
-            var response = (ObjectResponse<ApplicationUserAccount>)objResult.Value;
+            var response = (ObjectResponse<UserProfile>)objResult.Value;
 
             var profile = response.Value;
 

@@ -46,6 +46,19 @@ namespace Ext_Dynamics_API
                     In = ParameterLocation.Header,
                     Type = SecuritySchemeType.ApiKey
                 });
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            }
+                        },
+                        Array.Empty<string>()
+                    }
+                });
             });
             services.AddDbContext<ExtensibleDbContext>(options => options.UseSqlServer(SysConfig.dbConnString));
 
@@ -72,6 +85,8 @@ namespace Ext_Dynamics_API
                     };
                     options.SaveToken = true;
                 });
+
+            services.AddCors();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -86,8 +101,17 @@ namespace Ext_Dynamics_API
 
             app.UseHttpsRedirection();
 
+            app.UseCors(builder =>
+            {
+                builder
+                .AllowAnyOrigin()
+                .AllowAnyMethod()
+                .AllowAnyHeader();
+            });
+
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>

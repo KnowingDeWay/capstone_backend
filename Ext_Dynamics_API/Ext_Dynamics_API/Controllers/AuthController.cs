@@ -12,6 +12,7 @@ using System.Net;
 using Scrypt;
 using Ext_Dynamics_API.Configuration.Models;
 using System.IdentityModel.Tokens.Jwt;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace Ext_Dynamics_API.Controllers
 {
@@ -65,7 +66,7 @@ namespace Ext_Dynamics_API.Controllers
         [Route("LogoutUser")]
         public ActionResult LogoutUser()
         {
-            var encodedToken = _tokenManager.ReadToken(Request.Headers[_config.authHeader]);
+            var encodedToken = _tokenManager.ReadAndValidateToken(Request.Headers[_config.authHeader]);
             var handler = new JwtSecurityTokenHandler();
             JwtSecurityToken decodedToken;
 
@@ -97,6 +98,14 @@ namespace Ext_Dynamics_API.Controllers
             return new BadRequestObjectResult(new AuthResponse() { 
                 ResponseMessage = "The Supplied Token is Invalid"
             });
+        }
+
+        [HttpGet]
+        [Route("ValidateToken")]
+        public ActionResult ValidateToken()
+        {
+            var encodedToken = _tokenManager.ReadAndValidateToken(Request.Headers[_config.authHeader]);
+            return new OkObjectResult(!string.IsNullOrWhiteSpace(encodedToken));
         }
     }
 }
