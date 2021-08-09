@@ -73,5 +73,56 @@ namespace Ext_Dynamics_API.Canvas
                 return false;
             }
         }
+
+        public bool ActivateToken(int patId, int userId)
+        {
+            var pat = _dbCtx.PersonalAccessTokens.Where(x => x.Id == patId).FirstOrDefault();
+
+            if(pat == null)
+            {
+               return false;
+            }
+
+            pat.TokenActive = true;
+
+            var lastActiveTokens = _dbCtx.PersonalAccessTokens.
+                Where(x => x.AppUserId == userId && x.TokenActive && x.Id != patId).ToList();
+
+            foreach(var lastToken in lastActiveTokens)
+            {
+                lastToken.TokenActive = false;
+            }
+
+            try
+            {
+               _dbCtx.SaveChanges();
+                return true;
+            }
+            catch(DbUpdateConcurrencyException e)
+            {
+                foreach (var item in e.Entries)
+                {
+                    if (item.Entity is CanvasPersonalAccessToken)
+                    {
+                        var currValues = item.CurrentValues;
+                        var dbValues = item.GetDatabaseValues();
+
+                        foreach (var property in currValues.Properties)
+                        {
+                            var currentValue = currValues[property];
+                            var dbValue = dbValues[property];
+                        }
+
+                        // Refresh the original values to bypass next concurrency check
+                        item.OriginalValues.SetValues(dbValues);
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+        }
     }
 }

@@ -149,7 +149,8 @@ namespace Ext_Dynamics_API.Controllers
             {
                 TokenName = canvasToken.TokenName,
                 AccessToken = canvasToken.ApiKey,
-                AppUserId = userId
+                AppUserId = userId,
+                TokenActive = false
             };
 
             _dbCtx.PersonalAccessTokens.Add(pat);
@@ -252,5 +253,52 @@ namespace Ext_Dynamics_API.Controllers
             }
         }
 
+        [HttpPost]
+        [Authorize]
+        [Route("ActivateAccessToken/{patId}")]
+        public ActionResult ActivateAccessToken([FromRoute] int patId)
+        {
+            var encodedToken = _tokenManager.ReadAndValidateToken(Request.Headers[_config.authHeader]);
+            var handler = new JwtSecurityTokenHandler();
+            JwtSecurityToken decodedToken;
+
+            try
+            {
+                decodedToken = handler.ReadJwtToken(encodedToken);
+            }
+            catch (ArgumentException)
+            {
+                return new UnauthorizedObjectResult("User Token Is Not Valid");
+            }
+
+            var userId = _tokenManager.GetUserIdFromToken(decodedToken);
+
+            var canvasToken = _dbCtx.PersonalAccessTokens.Where(x => x.Id == patId).FirstOrDefault();
+
+            if (canvasToken == null)
+            {
+                return new NotFoundObjectResult($"Could not find token with id: {patId}");
+            }
+
+            if (userId == canvasToken.AppUserId)
+            {
+                if(canvasToken.TokenActive)
+                {
+                    return new BadRequestObjectResult("Token Is Already Activated");
+                }
+                if (_canvasTokenManager.ActivateToken(patId, userId)) 
+                {
+                    return new OkObjectResult("Token has Been Activated");
+                }
+                else
+                {
+                    return new BadRequestObjectResult("An error occured while trying to activate the token");
+                }
+            }
+            else
+            {
+                return new UnauthorizedObjectResult("You do not have permission to edit this token");
+            }
+        }
     }
 }

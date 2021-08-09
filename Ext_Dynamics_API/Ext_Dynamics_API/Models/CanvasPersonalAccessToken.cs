@@ -15,6 +15,7 @@ namespace Ext_Dynamics_API.Models
         // Encoded State of PAT (Personal Access Token)
         public string AccessToken { get; set; }
         public int AppUserId { get; set; }
+        public bool TokenActive { get; set; }
 
         [ForeignKey("AppUserId")]
         public ApplicationUserAccount ApplicationUser { get; set; }
