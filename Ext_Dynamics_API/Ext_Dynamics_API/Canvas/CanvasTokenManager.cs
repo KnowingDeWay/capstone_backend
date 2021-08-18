@@ -124,5 +124,16 @@ namespace Ext_Dynamics_API.Canvas
                 return true;
             }
         }
+
+        public string GetActiveAccessToken(int userId)
+        {
+            var activeToken = _dbCtx.PersonalAccessTokens.Where(x => x.AppUserId == userId && x.TokenActive).FirstOrDefault();
+
+            if (activeToken != null)
+            {
+                return activeToken.AccessToken;
+            }
+            return null;
+        }
     }
 }

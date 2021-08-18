@@ -27,6 +27,9 @@ namespace Ext_Dynamics_API.Configuration.Models
         [JsonProperty(PropertyName = "test_db_conn_str")]
         public readonly string testDbConnString;
 
+        [JsonProperty(PropertyName = "canvas_base_url")]
+        public readonly string canvasBaseUrl;
+
         public static SystemConfig LoadConfig()
         {
             var currPath = Environment.CurrentDirectory;

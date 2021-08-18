@@ -74,8 +74,8 @@ namespace Ext_Dynamics_API.Controllers
 
         [HttpGet]
         [Authorize]
-        [Route("GetUserAccessToken/{id}")]
-        public ActionResult GetUserAccessToken([FromRoute] int patId)
+        [Route("GetUserAccessTokenById/{id}")]
+        public ActionResult GetUserAccessTokenById([FromRoute] int patId)
         {
             var encodedToken = _tokenManager.ReadAndValidateToken(Request.Headers[_config.authHeader]);
             var handler = new JwtSecurityTokenHandler();
