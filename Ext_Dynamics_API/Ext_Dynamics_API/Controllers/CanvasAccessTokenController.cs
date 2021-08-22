@@ -63,7 +63,7 @@ namespace Ext_Dynamics_API.Controllers
 
             var list = _dbCtx.PersonalAccessTokens.Where(x => x.AppUserId == userId).ToList();
 
-            objResponse.ResponseMessage = "Successfully retreived personal access tokens";
+            objResponse.ResponseMessage = "";
             objResponse.ListContent = new List<CanvasPersonalAccessToken>();
 
             objResponse.ListContent.AddRange(list);
@@ -114,7 +114,7 @@ namespace Ext_Dynamics_API.Controllers
                 return new NotFoundObjectResult(objResponse);
             }
 
-            objResponse.Message = "Successfully retreived personal access tokens";
+            objResponse.Message = "Successfully retreived personal access token";
             objResponse.Value = pat;
 
             return new OkObjectResult(objResponse);

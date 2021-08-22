@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace Ext_Dynamics_API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/CanvasCourseController")]
     [ApiController]
     [Authorize]
     public class CanvasCourseController : ControllerBase
@@ -58,7 +58,21 @@ namespace Ext_Dynamics_API.Controllers
 
             var canvasPat = _canvasTokenManager.GetActiveAccessToken(sysUserId);
 
-            objResponse.ListContent = _canvasDataAccess.GetInstructorCourses(canvasPat);
+            if(canvasPat == null)
+            {
+                objResponse.ResponseMessage = "No Canvas PAT Selected/Activated!";
+                return new BadRequestObjectResult(objResponse);
+            }
+
+            try
+            {
+                objResponse.ListContent = _canvasDataAccess.GetInstructorCourses(canvasPat);
+            }
+            catch(Exception)
+            {
+                objResponse.ResponseMessage = "";
+                return new NotFoundObjectResult(objResponse);
+            }
             return new OkObjectResult(objResponse);
         }
     }

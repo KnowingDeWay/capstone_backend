@@ -17,6 +17,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Newtonsoft.Json.Converters;
 
 namespace Ext_Dynamics_API
 {
@@ -35,7 +36,8 @@ namespace Ext_Dynamics_API
         public void ConfigureServices(IServiceCollection services)
         {
 
-            services.AddControllers();
+            services.AddControllers().AddNewtonsoftJson();
+
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Ext_Dynamics_API", Version = "v1" });
