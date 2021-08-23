@@ -34,5 +34,10 @@ namespace Ext_Dynamics_API.Canvas
             var courses = JsonConvert.DeserializeObject<List<Course>>(resBody);
             return courses;
         }
+
+        public List<Assignment> GetCourseAssignments(string accessToken)
+        {
+
+        }
     }
 }

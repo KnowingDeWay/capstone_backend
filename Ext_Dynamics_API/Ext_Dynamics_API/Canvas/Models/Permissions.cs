@@ -13,5 +13,8 @@ namespace Ext_Dynamics_API.Canvas.Models
 
         [JsonProperty("create_announcement")]
         public bool CreateAnnouncement { get; set; }
+
+        [JsonProperty("attach")]
+        public bool Attach { get; set; }
     }
 }
