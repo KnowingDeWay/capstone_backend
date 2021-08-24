@@ -4,6 +4,11 @@
     <TargetFramework>net5.0</TargetFramework>
     <UserSecretsId>99dfa8b2-52e3-470b-87af-d003a3eed421</UserSecretsId>
     <DockerDefaultTargetOS>Windows</DockerDefaultTargetOS>
+    <Nullable>annotations</Nullable>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <WarningLevel>4</WarningLevel>
   </PropertyGroup>
 
   <ItemGroup>

@@ -48,7 +48,7 @@ namespace Ext_Dynamics_API.Canvas.Models
         public DateTime? SubmittedAt { get; set; }
 
         [JsonProperty("url")]
-        public object Url { get; set; }
+        public string Url { get; set; }
 
         [JsonProperty("user_id")]
         public int UserId { get; set; }

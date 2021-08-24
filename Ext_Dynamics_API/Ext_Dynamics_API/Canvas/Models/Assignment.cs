@@ -90,7 +90,7 @@ namespace Ext_Dynamics_API.Canvas.Models
         public bool IntraGroupPeerReviews { get; set; }
 
         [JsonProperty("group_category_id")]
-        public int GroupCategoryId { get; set; }
+        public int? GroupCategoryId { get; set; }
 
         [JsonProperty("needs_grading_count")]
         public int NeedsGradingCount { get; set; }
@@ -168,10 +168,10 @@ namespace Ext_Dynamics_API.Canvas.Models
         public bool UseRubricForGrading { get; set; }
 
         [JsonProperty("rubric_settings")]
-        public string RubricSettings { get; set; }
+        public RubricSettings RubricSettings { get; set; }
 
         [JsonProperty("rubric")]
-        public Rubric Rubric { get; set; }
+        public List<RubricCriterion> Rubric { get; set; }
 
         [JsonProperty("assignment_visibility")]
         public List<int> AssignmentVisibility { get; set; }
@@ -189,7 +189,7 @@ namespace Ext_Dynamics_API.Canvas.Models
         public int GraderCount { get; set; }
 
         [JsonProperty("final_grader_id")]
-        public int FinalGraderId { get; set; }
+        public int? FinalGraderId { get; set; }
 
         [JsonProperty("grader_comments_visible_to_graders")]
         public bool GraderCommentsVisibleToGraders { get; set; }

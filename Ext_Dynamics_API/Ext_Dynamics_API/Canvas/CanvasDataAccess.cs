@@ -35,9 +35,17 @@ namespace Ext_Dynamics_API.Canvas
             return courses;
         }
 
-        public List<Assignment> GetCourseAssignments(string accessToken)
+        public List<Assignment> GetCourseAssignments(string accessToken, int courseId)
         {
-
+            string requestUrl = $"{_config.canvasBaseUrl}/courses/{courseId}/assignments";
+            var request = WebRequest.Create(requestUrl);
+            request.Headers.Add("Authorization", $"Bearer {accessToken}");
+            var response = (HttpWebResponse)request.GetResponse();
+            var receptionStream = response.GetResponseStream();
+            var streamReader = new StreamReader(receptionStream, Encoding.UTF8);
+            var resBody = streamReader.ReadToEnd();
+            var assignments = JsonConvert.DeserializeObject<List<Assignment>>(resBody);
+            return assignments;
         }
     }
 }

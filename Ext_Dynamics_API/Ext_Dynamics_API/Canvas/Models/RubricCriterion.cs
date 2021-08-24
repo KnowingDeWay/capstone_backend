@@ -18,7 +18,7 @@ namespace Ext_Dynamics_API.Canvas.Models
         public string LongDescription { get; set; }
 
         [JsonProperty("points")]
-        public int Points { get; set; }
+        public double Points { get; set; }
 
         [JsonProperty("criterion_use_range")]
         public bool CriterionUseRange { get; set; }

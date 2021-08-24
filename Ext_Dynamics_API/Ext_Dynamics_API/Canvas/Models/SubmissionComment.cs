@@ -18,7 +18,7 @@ namespace Ext_Dynamics_API.Canvas.Models
         public string AuthorName { get; set; }
 
         [JsonProperty("author")]
-        public string Author { get; set; }
+        public UserDisplay Author { get; set; }
 
         [JsonProperty("comment")]
         public string Comment { get; set; }
