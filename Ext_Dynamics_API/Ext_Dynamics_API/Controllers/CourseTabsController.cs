@@ -66,8 +66,7 @@ namespace Ext_Dynamics_API.Controllers
 
             var dataTable = CourseDataTable.LoadDataTable(courseId, canvasPat);
             
-
-            return Ok();
+            return Ok(dataTable);
         }
     }
 }

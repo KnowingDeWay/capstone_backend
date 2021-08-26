@@ -14,14 +14,14 @@ namespace Ext_Dynamics_API.Models.CustomTabModels
         public string CalcRule { get; set; }
         public List<DataRow> Rows { get; set; }
         public int? RelatedDataId { get; set; } // The id of the assignment on Canvas this column might be reffering to
-        public int ColMaxValue { get; set; }
-        public int ColMinValue { get; set; }
+        public double ColMaxValue { get; set; } // Max permssible value that can be entered for numerical columns
+        public double ColMinValue { get; set; } // Min permssible value that can be entered for numerical columns
     }
 
     public enum ColumnDataType
     {
-        // Int, Double, String, bool
-        Number, Decimal, String, Boolean
+        // Double String, bool
+        Number, String, Boolean
     }
 
     public enum ColumnType

@@ -75,5 +75,31 @@ namespace Ext_Dynamics_API.Canvas
             var data = JsonConvert.DeserializeObject<List<UserCourseLevelAnalysis>>(resBody);
             return data;
         }
+
+        public List<CustomColumn> GetCustomColumns(string accessToken, int courseId)
+        {
+            string requestUrl = $"{_config.canvasBaseUrl}/api/v1/courses/{courseId}/custom_gradebook_columns";
+            var request = WebRequest.Create(requestUrl);
+            request.Headers.Add("Authorization", $"Bearer {accessToken}");
+            var response = (HttpWebResponse)request.GetResponse();
+            var receptionStream = response.GetResponseStream();
+            var streamReader = new StreamReader(receptionStream, Encoding.UTF8);
+            var resBody = streamReader.ReadToEnd();
+            var data = JsonConvert.DeserializeObject<List<CustomColumn>>(resBody);
+            return data;
+        }
+
+        public List<ColumnDatum> GetCustomColumnEntries(string accessToken, int courseId, int colId)
+        {
+            string requestUrl = $"{_config.canvasBaseUrl}/api/v1/courses/{courseId}/custom_gradebook_columns/{colId}/data";
+            var request = WebRequest.Create(requestUrl);
+            request.Headers.Add("Authorization", $"Bearer {accessToken}");
+            var response = (HttpWebResponse)request.GetResponse();
+            var receptionStream = response.GetResponseStream();
+            var streamReader = new StreamReader(receptionStream, Encoding.UTF8);
+            var resBody = streamReader.ReadToEnd();
+            var data = JsonConvert.DeserializeObject<List<ColumnDatum>>(resBody);
+            return data;
+        }
     }
 }

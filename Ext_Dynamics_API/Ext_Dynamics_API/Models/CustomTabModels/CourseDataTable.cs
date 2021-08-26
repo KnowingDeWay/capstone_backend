@@ -24,10 +24,19 @@ namespace Ext_Dynamics_API.Models.CustomTabModels
 
         public static CourseDataTable LoadDataTable(int courseId, string accessToken)
         {
-            var table = new CourseDataTable();
-            table.CourseId = courseId;
+            var table = new CourseDataTable
+            {
+                CourseId = courseId
+            };
+
+            // Load students
             var students = GetStudents(courseId, accessToken);
             table.Students = students;
+
+            // Load assignment columns and data rows
+            var assignmentCols = GetAssignmentColumns(courseId, accessToken);
+            table.AssignmentGradeColumns.AddRange(assignmentCols);
+            PopulateAssignmentRows(ref table, accessToken, courseId);
             return table;
         }
 
@@ -50,10 +59,59 @@ namespace Ext_Dynamics_API.Models.CustomTabModels
             return tableStudents;
         }
 
-        private static List<DataColumn> GetAssignmentColumns()
+        private static List<DataColumn> GetAssignmentColumns(int courseId, string accessToken)
         {
             var assignmentCols = new List<DataColumn>();
+            var config = SystemConfig.LoadConfig();
+            var dataAccess = new CanvasDataAccess(config);
+            var assignments = dataAccess.GetCourseAssignments(accessToken, courseId);
+            foreach(var assignment in assignments)
+            {
+                var col = new DataColumn
+                {
+                    Name = assignment.Name,
+                    RelatedDataId = assignment.Id,
+                    ColumnType = ColumnType.Assignment_Score,
+                    DataType = ColumnDataType.Number,
+                    ColMaxValue = assignment.PointsPossible,
+                    ColMinValue = 0,
+                };
+                assignmentCols.Add(col);
+            }
             return assignmentCols;
+        }
+
+        private static void PopulateAssignmentRows(ref CourseDataTable table, string accessToken, int courseId)
+        {
+            var config = SystemConfig.LoadConfig();
+            var dataAccess = new CanvasDataAccess(config);
+            foreach(var student in table.Students)
+            {
+                var data = dataAccess.GetAnalysisData(accessToken, courseId, student.Id);
+                foreach(var col in table.AssignmentGradeColumns)
+                {
+                    var colData = data.Where(x => x.AssignmentId == col.RelatedDataId).ToList();
+                    foreach(var cdata in colData)
+                    {
+                        var row = new DataRow
+                        {
+                            Value = cdata.Submission.Score,
+                            DataColumn = col,
+                            AssociatedUser = student,
+                            ValueChanged = false
+                        };
+                        col.Rows.Add(row);
+                    }
+                }
+            }
+        }
+
+        private static List<DataColumn> GetCustomDataColumns(ref CourseDataTable table, string accessToken, int courseId)
+        {
+            var customCols = new List<DataColumn>();
+            var config = SystemConfig.LoadConfig();
+            var dataAccess = new CanvasDataAccess(config);
+            return customCols;
         }
     }
 }
