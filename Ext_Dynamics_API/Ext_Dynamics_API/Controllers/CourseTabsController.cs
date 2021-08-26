@@ -1,7 +1,7 @@
 ﻿using Ext_Dynamics_API.Canvas;
-using Ext_Dynamics_API.Canvas.Models;
 using Ext_Dynamics_API.Configuration.Models;
 using Ext_Dynamics_API.DataAccess;
+using Ext_Dynamics_API.Models.CustomTabModels;
 using Ext_Dynamics_API.ResponseModels;
 using Ext_Dynamics_API.Security;
 using Microsoft.AspNetCore.Authorization;
@@ -15,10 +15,10 @@ using System.Threading.Tasks;
 
 namespace Ext_Dynamics_API.Controllers
 {
-    [Route("api/CanvasAssignmentsController")]
+    [Route("api/CourseTabsController")]
     [ApiController]
     [Authorize]
-    public class CanvasAssignmentsController : ControllerBase
+    public class CourseTabsController : ControllerBase
     {
         private readonly ExtensibleDbContext _dbCtx;
         private readonly TokenManager _tokenManager;
@@ -26,7 +26,7 @@ namespace Ext_Dynamics_API.Controllers
         private readonly CanvasTokenManager _canvasTokenManager;
         private readonly CanvasDataAccess _canvasDataAccess;
 
-        public CanvasAssignmentsController(ExtensibleDbContext dbCtx)
+        public CourseTabsController(ExtensibleDbContext dbCtx)
         {
             _dbCtx = dbCtx;
             _config = SystemConfig.LoadConfig();
@@ -36,21 +36,21 @@ namespace Ext_Dynamics_API.Controllers
         }
 
         [HttpGet]
-        [Route("GetCourseAssignments/{courseId}")]
-        public IActionResult GetCourseAssignments([FromRoute] int courseId)
+        [Route("GetCourseDataTable/{courseId}")]
+        public IActionResult GetCourseDataTable([FromRoute] int courseId)
         {
             var userToken = _tokenManager.ReadAndValidateToken(Request.Headers[_config.authHeader]);
 
             JwtSecurityToken decodedToken;
             var handler = new JwtSecurityTokenHandler();
-            var objResponse = new ListResponse<Assignment>();
+            var objResponse = new ObjectResponse<CourseDataTable>();
             try
             {
                 decodedToken = handler.ReadJwtToken(userToken);
             }
             catch (ArgumentException)
             {
-                objResponse.ResponseMessage = "User Token Is Not Valid";
+                objResponse.Message = "User Token Is Not Valid";
                 return new UnauthorizedObjectResult(objResponse);
             }
 
@@ -60,22 +60,14 @@ namespace Ext_Dynamics_API.Controllers
 
             if (canvasPat == null)
             {
-                objResponse.ResponseMessage = "No Canvas PAT Selected/Activated!";
+                objResponse.Message = "No Canvas PAT Selected/Activated!";
                 return new BadRequestObjectResult(objResponse);
             }
 
-            try
-            {
-                objResponse.ListContent = _canvasDataAccess.GetCourseAssignments(canvasPat, courseId);
-            }
-            catch(Exception)
-            {
-                objResponse.ResponseMessage = "Error occured during retrevial of canvas courses";
-                return new NotFoundObjectResult(objResponse);
-            }
+            var dataTable = CourseDataTable.LoadDataTable(courseId, canvasPat);
+            
 
-            return new OkObjectResult(objResponse);
+            return Ok();
         }
-
     }
 }

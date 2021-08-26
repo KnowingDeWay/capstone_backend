@@ -14,6 +14,9 @@ namespace Ext_Dynamics_API.Canvas.Models
         [JsonProperty("name")]
         public string Name { get; set; }
 
+        [JsonProperty("created_at")]
+        public DateTime CreatedAt { get; set; }
+
         [JsonProperty("sortable_name")]
         public string SortableName { get; set; }
 
