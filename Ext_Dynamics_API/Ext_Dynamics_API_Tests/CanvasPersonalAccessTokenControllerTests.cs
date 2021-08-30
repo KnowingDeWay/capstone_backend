@@ -242,7 +242,7 @@ namespace Ext_Dynamics_API_Tests
 
             var tokenToGet = _dbCtx.PersonalAccessTokens.Where(x => x.TokenName.Equals("FirstToken")).FirstOrDefault();
 
-            var response = canvasController.GetUserAccessToken(tokenToGet.Id);
+            var response = canvasController.GetUserAccessTokenById(tokenToGet.Id);
 
             var objResult = response as ObjectResult;
 
@@ -279,7 +279,7 @@ namespace Ext_Dynamics_API_Tests
 
             var tokenToGet = _dbCtx.PersonalAccessTokens.Where(x => x.TokenName.Equals("FirstToken")).FirstOrDefault();
 
-            var response = canvasController.GetUserAccessToken(tokenToGet.Id);
+            var response = canvasController.GetUserAccessTokenById(tokenToGet.Id);
 
             var objResult = response as ObjectResult;
 
@@ -316,7 +316,7 @@ namespace Ext_Dynamics_API_Tests
 
             var tokenToGet = _dbCtx.PersonalAccessTokens.Where(x => x.TokenName.Equals("FirstToken")).FirstOrDefault();
 
-            var response = canvasController.GetUserAccessToken(tokenToGet.Id);
+            var response = canvasController.GetUserAccessTokenById(tokenToGet.Id);
 
             var objResult = response as ObjectResult;
 

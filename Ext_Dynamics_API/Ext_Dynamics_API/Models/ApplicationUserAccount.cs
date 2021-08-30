@@ -16,5 +16,6 @@ namespace Ext_Dynamics_API.Models
 
         // Access tokens to be used with Canvas
         public List<CanvasPersonalAccessToken> AccessTokens { get; set; }
+        public List<DataColumnEntry> DataColumns { get; set; }
     }
 }

@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -12,16 +14,18 @@ namespace Ext_Dynamics_API.Models.CustomTabModels
         public ColumnDataType DataType { get; set; }
         public ColumnType ColumnType { get; set; }
         public string CalcRule { get; set; }
-        public List<DataRow> Rows { get; set; }
-        public int? RelatedDataId { get; set; } // The id of the assignment on Canvas this column might be reffering to
+
+        // The row data is not meant to be stored in our database, this is better off retreived from Canvas
+        public List<DataRowBase> Rows { get; set; }
+        public int RelatedDataId { get; set; } // The id of the assignment/custom tab on Canvas this column might be reffering to
         public double ColMaxValue { get; set; } // Max permssible value that can be entered for numerical columns
         public double ColMinValue { get; set; } // Min permssible value that can be entered for numerical columns
     }
 
     public enum ColumnDataType
     {
-        // Double String, bool
-        Number, String, Boolean
+        // Double, String
+        Number, String
     }
 
     public enum ColumnType
@@ -33,9 +37,7 @@ namespace Ext_Dynamics_API.Models.CustomTabModels
          * Derived Data: A column whose data is depedent on data within other columns. For example, a derived data column might
          * be a column where all the row values are equal to the sum of all the users assignments. Dervied Data columns are
          * automatically calculated by the system on the successful retreival of other data columns unlike all other column types.
-         * Key Column: Column that is not saved but is rather used to represent the label values on the y-axis of the table.
-         * For example, in the Canvas gradebook, the "key column" would be the student names.
          */
-        Assignment_Score, Custom_Canvas_Column, File_Import, Derived_Data, Key_Column
+        Assignment_Score, Custom_Canvas_Column, File_Import, Derived_Data
     }
 }

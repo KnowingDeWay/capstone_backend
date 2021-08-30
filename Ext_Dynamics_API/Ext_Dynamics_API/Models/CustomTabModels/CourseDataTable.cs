@@ -2,6 +2,8 @@
 using Ext_Dynamics_API.Canvas.Enums.Params;
 using Ext_Dynamics_API.Canvas.Models;
 using Ext_Dynamics_API.Configuration.Models;
+using Ext_Dynamics_API.DataAccess;
+using Ext_Dynamics_API.ResourceManagement.CustomDataColumnManagement;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,10 +21,10 @@ namespace Ext_Dynamics_API.Models.CustomTabModels
 
         private CourseDataTable()
         {
-
+            
         }
 
-        public static CourseDataTable LoadDataTable(int courseId, string accessToken)
+        public static CourseDataTable LoadDataTable(int courseId, string accessToken, ExtensibleDbContext dbContext)
         {
             var table = new CourseDataTable
             {
@@ -37,6 +39,10 @@ namespace Ext_Dynamics_API.Models.CustomTabModels
             var assignmentCols = GetAssignmentColumns(courseId, accessToken);
             table.AssignmentGradeColumns.AddRange(assignmentCols);
             PopulateAssignmentRows(ref table, accessToken, courseId);
+
+            // Load custom data columns into table with row data
+            GetCustomDataColumns(ref table, accessToken, courseId, dbContext);
+
             return table;
         }
 
@@ -93,7 +99,7 @@ namespace Ext_Dynamics_API.Models.CustomTabModels
                     var colData = data.Where(x => x.AssignmentId == col.RelatedDataId).ToList();
                     foreach(var cdata in colData)
                     {
-                        var row = new DataRow
+                        var row = new NumericDataRow
                         {
                             Value = cdata.Submission.Score,
                             DataColumn = col,
@@ -106,12 +112,13 @@ namespace Ext_Dynamics_API.Models.CustomTabModels
             }
         }
 
-        private static List<DataColumn> GetCustomDataColumns(ref CourseDataTable table, string accessToken, int courseId)
+        private static void GetCustomDataColumns(ref CourseDataTable table, string accessToken, int courseId, 
+            ExtensibleDbContext dbCtx)
         {
             var customCols = new List<DataColumn>();
             var config = SystemConfig.LoadConfig();
-            var dataAccess = new CanvasDataAccess(config);
-            return customCols;
+            var colManager = new CustomColumnManager(dbCtx, table.Students);
+            table.CustomDataColumns = colManager.GetCustomDataColumns(accessToken, courseId);
         }
     }
 }

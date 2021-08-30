@@ -4,14 +4,16 @@ using Ext_Dynamics_API.DataAccess;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Ext_Dynamics_API.Migrations
 {
     [DbContext(typeof(ExtensibleDbContext))]
-    partial class ExtensibleDbContextModelSnapshot : ModelSnapshot
+    [Migration("20210828094855_colasobject")]
+    partial class colasobject
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -91,30 +93,7 @@ namespace Ext_Dynamics_API.Migrations
                         .HasColumnType("int")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<string>("CalcRule")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<double>("ColMaxValue")
-                        .HasColumnType("float");
-
-                    b.Property<double>("ColMinValue")
-                        .HasColumnType("float");
-
-                    b.Property<int>("ColumnType")
-                        .HasColumnType("int");
-
                     b.Property<int>("CourseId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("DataType")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("RelatedDataId")
                         .HasColumnType("int");
 
                     b.Property<byte[]>("RowVersion")
