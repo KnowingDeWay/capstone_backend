@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 
 namespace Ext_Dynamics_API.Models.CustomTabModels
 {
-    public class NumericDataRow : DataRowBase
+    public class StringDataRow : DataRowBase
     {
-        public double Value { get; set; }
+        public string Value { get; set; }
     }
 }

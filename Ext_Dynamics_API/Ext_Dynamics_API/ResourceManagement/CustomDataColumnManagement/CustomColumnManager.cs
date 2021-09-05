@@ -35,17 +35,37 @@ namespace Ext_Dynamics_API.ResourceManagement.CustomDataColumnManagement
                 var currDbCol = custColsDb.Where(x => x.RelatedDataId == canvasCol.Id).FirstOrDefault();
                 if(currDbCol != null)
                 {
-                    var newKnownCol = new DataColumn
+                    DataColumn newKnownCol;
+                    if(currDbCol.DataType == ColumnDataType.Number)
                     {
-                        Name = canvasCol.Title,
-                        DataType = currDbCol.DataType,
-                        ColumnType = currDbCol.ColumnType,
-                        RelatedDataId = canvasCol.Id,
-                        CalcRule = currDbCol.CalcRule,
-                        ColMaxValue = currDbCol.ColMaxValue,
-                        ColMinValue = currDbCol.ColMinValue,
-                    };
-                    newKnownCol.Rows = GetCustomDataRowsForKnownColumnTypes(accessToken, courseId, newKnownCol);
+                        newKnownCol = new NumericDataColumn
+                        {
+                            Name = canvasCol.Title,
+                            DataType = currDbCol.DataType,
+                            ColumnType = currDbCol.ColumnType,
+                            RelatedDataId = canvasCol.Id,
+                            CalcRule = currDbCol.CalcRule,
+                            ColMaxValue = currDbCol.ColMaxValue,
+                            ColMinValue = currDbCol.ColMinValue,
+                            ColumnId = Guid.NewGuid()
+                        };
+                        ((NumericDataColumn)newKnownCol).Rows = GetCustomDataRowsForNumberColumns(accessToken, courseId, newKnownCol);
+                    }
+                    else
+                    {
+                        newKnownCol = new StringDataColumn
+                        {
+                            Name = canvasCol.Title,
+                            DataType = currDbCol.DataType,
+                            ColumnType = currDbCol.ColumnType,
+                            RelatedDataId = canvasCol.Id,
+                            CalcRule = currDbCol.CalcRule,
+                            ColMaxValue = currDbCol.ColMaxValue,
+                            ColMinValue = currDbCol.ColMinValue,
+                            ColumnId = Guid.NewGuid()
+                        };
+                        ((StringDataColumn)newKnownCol).Rows = GetCustomDataFromStringColumns(accessToken, courseId, newKnownCol);
+                    }
                     custDataColumns.Add(newKnownCol);
                 }
                 else
@@ -58,24 +78,27 @@ namespace Ext_Dynamics_API.ResourceManagement.CustomDataColumnManagement
                     };
                     var newColRows = GetCustomColumnDataRowsForUnknownTypes(accessToken, courseId, newCol);
                     newCol.DataType = GetColumnDataType(newColRows[0].Value);
-                    newCol.Rows = new List<DataRowBase>();
                     if (newCol.DataType == ColumnDataType.Number)
                     {
+                        var numCol = (NumericDataColumn)newCol;
+                        numCol.Rows = new List<NumericDataRow>();
                         foreach(var row in newColRows)
                         {
-                            newCol.Rows.Add(new NumericDataRow { 
-                                DataColumn = newCol,
+                            numCol.Rows.Add(new NumericDataRow { 
+                                ColumnId = Guid.NewGuid(),
                                 AssociatedUser = row.AssociatedUser,
                                 Value = double.Parse(row.Value),
                                 ValueChanged = false
                             });
                         }
+                        custDataColumns.Add(numCol);
                     }
                     else
                     {
-                        newCol.Rows = newColRows;
+                        var strCol = (StringDataColumn)newCol;
+                        strCol.Rows = newColRows;
+                        custDataColumns.Add(strCol);
                     }
-                    custDataColumns.Add(newCol);
                 }
             }
             return custDataColumns;
@@ -94,9 +117,9 @@ namespace Ext_Dynamics_API.ResourceManagement.CustomDataColumnManagement
             }
         }
 
-        private List<DataRowBase> GetCustomDataRowsForKnownColumnTypes(string accessToken, int courseId, DataColumn column)
+        private List<NumericDataRow> GetCustomDataRowsForNumberColumns(string accessToken, int courseId, DataColumn column)
         {
-            var data = new List<DataRowBase>();
+            var data = new List<NumericDataRow>();
             var canvasDataEntries = _canvasDataAccess.GetCustomColumnEntries(accessToken, courseId, column.RelatedDataId);
             if(column.DataType == ColumnDataType.Number)
             {
@@ -105,37 +128,41 @@ namespace Ext_Dynamics_API.ResourceManagement.CustomDataColumnManagement
                     data.Add(new NumericDataRow
                     {
                         AssociatedUser = _students.Where(x => x.Id == entry.UserId).FirstOrDefault(),
-                        DataColumn = column,
+                        ColumnId = column.ColumnId,
                         ValueChanged = false,
                         Value = double.Parse(entry.Content)
-                    });
-                }
-            }
-            else
-            {
-                foreach (var entry in canvasDataEntries)
-                {
-                    data.Add(new DataRowBase
-                    {
-                        AssociatedUser = _students.Where(x => x.Id == entry.UserId).FirstOrDefault(),
-                        DataColumn = column,
-                        ValueChanged = false,
-                        Value = entry.Content
                     });
                 }
             }
             return data;
         }
 
-        private List<DataRowBase> GetCustomColumnDataRowsForUnknownTypes(string accessToken, int courseId, DataColumn column)
+        private List<StringDataRow> GetCustomDataFromStringColumns(string accessToken, int courseId, DataColumn column)
         {
-            var data = new List<DataRowBase>();
+            var data = new List<StringDataRow>();
+            var canvasDataEntries = _canvasDataAccess.GetCustomColumnEntries(accessToken, courseId, column.RelatedDataId);
+            foreach (var entry in canvasDataEntries)
+            {
+                data.Add(new StringDataRow
+                {
+                    AssociatedUser = _students.Where(x => x.Id == entry.UserId).FirstOrDefault(),
+                    ColumnId = column.ColumnId,
+                    ValueChanged = false,
+                    Value = entry.Content
+                });
+            }
+            return data;
+        }
+
+        private List<StringDataRow> GetCustomColumnDataRowsForUnknownTypes(string accessToken, int courseId, DataColumn column)
+        {
+            var data = new List<StringDataRow>();
             var canvasDataEntries = _canvasDataAccess.GetCustomColumnEntries(accessToken, courseId, column.RelatedDataId);
             foreach(var entry in canvasDataEntries)
             {
-                data.Add(new DataRowBase { 
+                data.Add(new StringDataRow { 
                     AssociatedUser = _students.Where(x => x.Id == entry.UserId).FirstOrDefault(),
-                    DataColumn = column,
+                    ColumnId = column.ColumnId,
                     ValueChanged = false,
                     Value = entry.Content
                 });

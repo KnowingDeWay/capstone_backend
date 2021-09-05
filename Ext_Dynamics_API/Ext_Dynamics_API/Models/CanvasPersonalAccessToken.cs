@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -8,6 +9,7 @@ using System.Threading.Tasks;
 
 namespace Ext_Dynamics_API.Models
 {
+    [ValidateNever]
     public class CanvasPersonalAccessToken : EntityBase
     {
         public string TokenName { get; set; }

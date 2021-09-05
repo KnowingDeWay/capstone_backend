@@ -64,9 +64,11 @@ namespace Ext_Dynamics_API.Controllers
                 return new BadRequestObjectResult(objResponse);
             }
 
-            var dataTable = CourseDataTable.LoadDataTable(courseId, canvasPat);
+            var dataTable = CourseDataTable.LoadDataTable(courseId, canvasPat, _dbCtx);
+            objResponse.Value = dataTable;
+            objResponse.Message = "Successful retrevial of data table";
             
-            return Ok(dataTable);
+            return Ok(objResponse);
         }
     }
 }

@@ -36,7 +36,7 @@ namespace Ext_Dynamics_API.Canvas.Models
         public string PreviewUrl { get; set; }
 
         [JsonProperty("score")]
-        public double Score { get; set; }
+        public double? Score { get; set; }
 
         [JsonProperty("submission_comments")]
         public List<SubmissionComment> SubmissionComments { get; set; }

@@ -52,7 +52,7 @@ namespace Ext_Dynamics_API.Canvas
 
         public List<User> GetUsersInCourse(string accessToken, int courseId, EnrollmentParamType enrollmentType)
         {
-            string requestUrl = $"{_config.canvasBaseUrl}/courses/${courseId}/users?enrollment_type=${enrollmentType}";
+            string requestUrl = $"{_config.canvasBaseUrl}/courses/{courseId}/users?enrollment_type={enrollmentType}";
             var request = WebRequest.Create(requestUrl);
             request.Headers.Add("Authorization", $"Bearer {accessToken}");
             var response = (HttpWebResponse)request.GetResponse();
@@ -65,7 +65,7 @@ namespace Ext_Dynamics_API.Canvas
 
         public List<UserCourseLevelAnalysis> GetAnalysisData(string accessToken, int courseId, int studentId)
         {
-            string requestUrl = $"{_config.canvasBaseUrl}/courses/${courseId}/analytics/users/${studentId}/assignments";
+            string requestUrl = $"{_config.canvasBaseUrl}/courses/{courseId}/analytics/users/{studentId}/assignments";
             var request = WebRequest.Create(requestUrl);
             request.Headers.Add("Authorization", $"Bearer {accessToken}");
             var response = (HttpWebResponse)request.GetResponse();
@@ -78,7 +78,7 @@ namespace Ext_Dynamics_API.Canvas
 
         public List<CustomColumn> GetCustomColumns(string accessToken, int courseId)
         {
-            string requestUrl = $"{_config.canvasBaseUrl}/api/v1/courses/{courseId}/custom_gradebook_columns";
+            string requestUrl = $"{_config.canvasBaseUrl}/courses/{courseId}/custom_gradebook_columns";
             var request = WebRequest.Create(requestUrl);
             request.Headers.Add("Authorization", $"Bearer {accessToken}");
             var response = (HttpWebResponse)request.GetResponse();

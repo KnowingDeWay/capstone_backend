@@ -17,7 +17,6 @@ namespace Ext_Dynamics_API.Models.CustomTabModels
         public List<DataColumn> CustomDataColumns { get; set; }
         public List<DataTableStudent> Students { get; set; } // Student names for example, y-axis values of the table
         public int CourseId { get; set; }
-        public List<Submission> Submissions { get; set; } // List of Assignment Submissions
 
         private CourseDataTable()
         {
@@ -37,7 +36,7 @@ namespace Ext_Dynamics_API.Models.CustomTabModels
 
             // Load assignment columns and data rows
             var assignmentCols = GetAssignmentColumns(courseId, accessToken);
-            table.AssignmentGradeColumns.AddRange(assignmentCols);
+            table.AssignmentGradeColumns = assignmentCols;
             PopulateAssignmentRows(ref table, accessToken, courseId);
 
             // Load custom data columns into table with row data
@@ -73,14 +72,16 @@ namespace Ext_Dynamics_API.Models.CustomTabModels
             var assignments = dataAccess.GetCourseAssignments(accessToken, courseId);
             foreach(var assignment in assignments)
             {
-                var col = new DataColumn
+                var col = new NumericDataColumn
                 {
                     Name = assignment.Name,
                     RelatedDataId = assignment.Id,
+                    ColumnId = Guid.NewGuid(),
                     ColumnType = ColumnType.Assignment_Score,
                     DataType = ColumnDataType.Number,
                     ColMaxValue = assignment.PointsPossible,
                     ColMinValue = 0,
+                    Rows = new List<NumericDataRow>()
                 };
                 assignmentCols.Add(col);
             }
@@ -101,12 +102,12 @@ namespace Ext_Dynamics_API.Models.CustomTabModels
                     {
                         var row = new NumericDataRow
                         {
-                            Value = cdata.Submission.Score,
-                            DataColumn = col,
+                            Value = (cdata.Submission.Score != null) ? (double)cdata.Submission.Score : 0,
+                            ColumnId = col.ColumnId,
                             AssociatedUser = student,
                             ValueChanged = false
                         };
-                        col.Rows.Add(row);
+                        ((NumericDataColumn)col).Rows.Add(row);
                     }
                 }
             }

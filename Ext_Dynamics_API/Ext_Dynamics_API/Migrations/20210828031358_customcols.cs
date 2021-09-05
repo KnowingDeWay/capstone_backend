@@ -13,7 +13,7 @@ namespace Ext_Dynamics_API.Migrations
                 table: "Token_Entries",
                 type: "rowversion",
                 rowVersion: true,
-                nullable: false);
+                nullable: true);
 
             migrationBuilder.AlterColumn<string>(
                 name: "EncodedToken",
@@ -41,7 +41,7 @@ namespace Ext_Dynamics_API.Migrations
                 table: "Personal_Access_Tokens",
                 type: "rowversion",
                 rowVersion: true,
-                nullable: false);
+                nullable: true);
 
             migrationBuilder.AlterColumn<string>(
                 name: "AccessToken",
@@ -69,7 +69,7 @@ namespace Ext_Dynamics_API.Migrations
                 table: "App_Users",
                 type: "rowversion",
                 rowVersion: true,
-                nullable: false);
+                nullable: true);
 
             migrationBuilder.CreateTable(
                 name: "Data_Column_Entries",

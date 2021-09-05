@@ -9,14 +9,13 @@ namespace Ext_Dynamics_API.Models.CustomTabModels
 {
     public class DataColumn
     {
+        public Guid ColumnId { get; set; }
+
         // X-axis label value of table
         public string Name { get; set; }
         public ColumnDataType DataType { get; set; }
         public ColumnType ColumnType { get; set; }
         public string CalcRule { get; set; }
-
-        // The row data is not meant to be stored in our database, this is better off retreived from Canvas
-        public List<DataRowBase> Rows { get; set; }
         public int RelatedDataId { get; set; } // The id of the assignment/custom tab on Canvas this column might be reffering to
         public double ColMaxValue { get; set; } // Max permssible value that can be entered for numerical columns
         public double ColMinValue { get; set; } // Min permssible value that can be entered for numerical columns

@@ -16,7 +16,7 @@ namespace Ext_Dynamics_API.Canvas.AnalysisModels
         public string Title { get; set; }
 
         [JsonProperty("unlock_at")]
-        public object UnlockAt { get; set; }
+        public DateTime? UnlockAt { get; set; }
 
         [JsonProperty("points_possible")]
         public double PointsPossible { get; set; }
@@ -28,7 +28,7 @@ namespace Ext_Dynamics_API.Canvas.AnalysisModels
         public bool MultipleDueDates { get; set; }
 
         [JsonProperty("due_at")]
-        public DateTime DueAt { get; set; }
+        public DateTime? DueAt { get; set; }
 
         [JsonProperty("status")]
         public string Status { get; set; }
