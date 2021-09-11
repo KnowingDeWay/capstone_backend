@@ -1,9 +1,11 @@
 ﻿using Ext_Dynamics_API.Canvas;
+using Ext_Dynamics_API.Canvas.DataAccessModels;
 using Ext_Dynamics_API.Canvas.Enums.Params;
 using Ext_Dynamics_API.Canvas.Models;
 using Ext_Dynamics_API.Configuration.Models;
 using Ext_Dynamics_API.DataAccess;
-using Ext_Dynamics_API.ResourceManagement.CustomDataColumnManagement;
+using Ext_Dynamics_API.ResourceManagement;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -43,6 +45,129 @@ namespace Ext_Dynamics_API.Models.CustomTabModels
             GetCustomDataColumns(ref table, accessToken, courseId, dbContext);
 
             return table;
+        }
+
+        public static CourseDataTable LoadDataTableFromDynamicObject(dynamic table)
+        {
+            var newTable = new CourseDataTable
+            {
+                CourseId = table.courseId,
+                AssignmentGradeColumns = new List<DataColumn>(),
+                CustomDataColumns = new List<DataColumn>(),
+                Students = new List<DataTableStudent>()
+            };
+            foreach(var col in table.assignmentGradeColumns)
+            {
+                var newCol = new NumericDataColumn
+                {
+                    Name = col.name,
+                    DataType = col.dataType,
+                    ColumnId = col.columnId,
+                    ColumnType = col.columnType,
+                    CalcRule = col.calcRule,
+                    RelatedDataId = col.relatedDataId,
+                    ColMaxValue = col.colMaxValue,
+                    ColMinValue = col.colMinValue,
+                    Rows = new List<NumericDataRow>()
+                };
+                foreach(var row in col.rows)
+                {
+                    var newRow = new NumericDataRow
+                    {
+                        ColumnId = row.columnId,
+                        AssociatedUser = new DataTableStudent
+                        {
+                            Id = row.associatedUser.id,
+                            Name = row.associatedUser.name
+                        },
+                        ValueChanged = row.valueChanged,
+                        Value = row.value,
+                        NewValue = row.newValue
+                    };
+                    newCol.Rows.Add(newRow);
+                }
+                newTable.AssignmentGradeColumns.Add(newCol);
+            }
+            foreach (var col in table.customDataColumns)
+            {
+                if(col.dataType == ColumnDataType.Number)
+                {
+                    var newCol = new NumericDataColumn
+                    {
+                        Name = col.name,
+                        DataType = col.dataType,
+                        ColumnId = col.columnId,
+                        ColumnType = col.columnType,
+                        CalcRule = col.calcRule,
+                        RelatedDataId = col.relatedDataId,
+                        ColMaxValue = col.colMaxValue,
+                        ColMinValue = col.colMinValue,
+                        Rows = new List<NumericDataRow>()
+                    };
+
+                    foreach (var row in col.rows)
+                    {
+                        var newRow = new NumericDataRow
+                        {
+                            ColumnId = row.columnId,
+                            AssociatedUser = new DataTableStudent
+                            {
+                                Id = row.associatedUser.id,
+                                Name = row.associatedUser.name
+                            },
+                            ValueChanged = row.valueChanged,
+                            Value = row.value,
+                            NewValue = row.newValue
+                        };
+                        newCol.Rows.Add(newRow);
+                    }
+
+                    newTable.AssignmentGradeColumns.Add(newCol);
+                }
+                else
+                {
+                    var newCol = new StringDataColumn
+                    {
+                        Name = col.name,
+                        DataType = col.dataType,
+                        ColumnId = col.columnId,
+                        ColumnType = col.columnType,
+                        CalcRule = col.calcRule,
+                        RelatedDataId = col.relatedDataId,
+                        ColMaxValue = col.colMaxValue,
+                        ColMinValue = col.colMinValue,
+                        Rows = new List<StringDataRow>()
+                    };
+
+                    foreach (var row in col.rows)
+                    {
+                        var newRow = new StringDataRow
+                        {
+                            ColumnId = row.columnId,
+                            AssociatedUser = new DataTableStudent
+                            {
+                                Id = row.associatedUser.id,
+                                Name = row.associatedUser.name
+                            },
+                            ValueChanged = row.valueChanged,
+                            Value = row.value,
+                            NewValue = row.newValue
+                        };
+                        newCol.Rows.Add(newRow);
+                    }
+
+                    newTable.AssignmentGradeColumns.Add(newCol);
+                }
+            }
+            foreach(var student in table.students)
+            {
+                newTable.Students.Add(new DataTableStudent
+                {
+                    Id = student.id,
+                    Name = student.name
+                });
+            }
+            return newTable;
         }
 
         // Load students
@@ -118,7 +243,7 @@ namespace Ext_Dynamics_API.Models.CustomTabModels
         {
             var customCols = new List<DataColumn>();
             var config = SystemConfig.LoadConfig();
-            var colManager = new CustomColumnManager(dbCtx, table.Students);
+            var colManager = new CourseDataTableManager(dbCtx, table.Students);
             table.CustomDataColumns = colManager.GetCustomDataColumns(accessToken, courseId);
         }
     }

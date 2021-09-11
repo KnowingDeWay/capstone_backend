@@ -2,6 +2,7 @@
 using Ext_Dynamics_API.Configuration.Models;
 using Ext_Dynamics_API.DataAccess;
 using Ext_Dynamics_API.Models.CustomTabModels;
+using Ext_Dynamics_API.ResourceManagement;
 using Ext_Dynamics_API.ResponseModels;
 using Ext_Dynamics_API.Security;
 using Microsoft.AspNetCore.Authorization;
@@ -25,6 +26,7 @@ namespace Ext_Dynamics_API.Controllers
         private readonly SystemConfig _config;
         private readonly CanvasTokenManager _canvasTokenManager;
         private readonly CanvasDataAccess _canvasDataAccess;
+        private readonly CourseDataTableManager _tableManager;
 
         public CourseTabsController(ExtensibleDbContext dbCtx)
         {
@@ -33,6 +35,7 @@ namespace Ext_Dynamics_API.Controllers
             _tokenManager = new TokenManager(_dbCtx, _config);
             _canvasTokenManager = new CanvasTokenManager(_dbCtx);
             _canvasDataAccess = new CanvasDataAccess(_config);
+            _tableManager = new CourseDataTableManager(_dbCtx);
         }
 
         [HttpGet]
@@ -69,6 +72,46 @@ namespace Ext_Dynamics_API.Controllers
             objResponse.Message = "Successful retrevial of data table";
             
             return Ok(objResponse);
+        }
+
+        [HttpPut]
+        [Route("UpdateCourseTable")]
+        public IActionResult UpdateCourseTable([FromBody] dynamic editedTable)
+        {
+            var userToken = _tokenManager.ReadAndValidateToken(Request.Headers[_config.authHeader]);
+
+            JwtSecurityToken decodedToken;
+            var handler = new JwtSecurityTokenHandler();
+            try
+            {
+                decodedToken = handler.ReadJwtToken(userToken);
+            }
+            catch (ArgumentException)
+            {
+                return new UnauthorizedObjectResult("User Token Is Not Valid");
+            }
+
+            var sysUserId = _tokenManager.GetUserIdFromToken(decodedToken);
+
+            var canvasPat = _canvasTokenManager.GetActiveAccessToken(sysUserId);
+
+            if (canvasPat == null)
+            {
+                return new BadRequestObjectResult("No Canvas PAT Selected/Activated!");
+            }
+
+            var table = CourseDataTable.LoadDataTableFromDynamicObject(editedTable);
+
+            _tableManager.Students = table.Students;
+            var result = _tableManager.EditTable(table.CourseId, canvasPat, table);
+            if(result)
+            {
+                return Ok("Successfully saved changes to Gradebook");
+            }
+            else
+            {
+                return NotFound("Failied to Edit Canvas Table");
+            }
         }
     }
 }

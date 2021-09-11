@@ -89,6 +89,10 @@ namespace Ext_Dynamics_API
                     options.SaveToken = true;
                 });
 
+            services.Configure<ApiBehaviorOptions>(options => {
+                options.SuppressModelStateInvalidFilter = true;
+            });
+
             services.AddCors();
         }
 

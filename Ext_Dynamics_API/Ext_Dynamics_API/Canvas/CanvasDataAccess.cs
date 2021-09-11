@@ -1,27 +1,34 @@
 ﻿using Ext_Dynamics_API.Canvas.AnalysisModels;
+using Ext_Dynamics_API.Canvas.DataAccessModels;
 using Ext_Dynamics_API.Canvas.Enums;
 using Ext_Dynamics_API.Canvas.Enums.Params;
 using Ext_Dynamics_API.Canvas.Models;
+using Ext_Dynamics_API.Canvas.RequestModels;
 using Ext_Dynamics_API.Configuration.Models;
 using Ext_Dynamics_API.Enums;
+using Ext_Dynamics_API.Models.CustomTabModels;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Ext_Dynamics_API.Canvas
 {
-    public class CanvasDataAccess
+    public class CanvasDataAccess : IDisposable
     {
         private readonly SystemConfig _config;
+        private readonly HttpClient _httpClient;
 
         public CanvasDataAccess(SystemConfig config)
         {
             _config = config;
+            _httpClient = new HttpClient();
+            _httpClient.BaseAddress = new Uri(_config.canvasBaseUrl);
         }
 
         public List<Course> GetInstructorCourses(string accessToken)
@@ -100,6 +107,44 @@ namespace Ext_Dynamics_API.Canvas
             var resBody = streamReader.ReadToEnd();
             var data = JsonConvert.DeserializeObject<List<ColumnDatum>>(resBody);
             return data;
+        }
+
+        public void SetAssignmentColumnEntries(string accessToken, int courseId, int assignmentId, 
+            List<AssignmentGradeChangeEntry> entries)
+        {
+            string requestUrl = $"/api/v1/courses/{courseId}/assignments/{assignmentId}/submissions/update_grades";
+            var request = new HttpRequestMessage(new HttpMethod("POST"), requestUrl);
+            request.Headers.Add("Authorization", $"Bearer {accessToken}");
+            var formContent = new MultipartFormDataContent();
+            foreach(var entry in entries)
+            {
+                formContent.Add(new StringContent($"{entry.NewGrade}"), $"grade_data[{entry.StudentId}][posted_grade]");
+            }
+            request.Content = formContent;
+            var response = _httpClient.Send(request);
+
+            // Clean up
+            request.Dispose();
+            response.Dispose();
+        }
+
+        public void SetCustomColumnEntries(string accessToken, int courseId, CustomColumnsUpdateRequest updateRequest)
+        {
+            string requestUrl = $"{_config.canvasBaseUrl}/api/v1/courses/{courseId}/custom_gradebook_column_data";
+            var request = WebRequest.CreateHttp(requestUrl);
+            request.ContentType = "application/json";
+            request.Method = "PUT";
+            using (var streamWriter = new StreamWriter(request.GetRequestStream()))
+            {
+                string jsonContent = JsonConvert.SerializeObject(updateRequest);
+                streamWriter.Write(jsonContent);
+            }
+            request.GetResponse();
+        }
+
+        public void Dispose()
+        {
+            ((IDisposable)_httpClient).Dispose();
         }
     }
 }

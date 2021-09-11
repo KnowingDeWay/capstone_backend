@@ -8,5 +8,6 @@ namespace Ext_Dynamics_API.Models.CustomTabModels
     public class StringDataRow : DataRowBase
     {
         public string Value { get; set; }
+        public string NewValue { get; set; }
     }
 }
