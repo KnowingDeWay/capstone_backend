@@ -3,7 +3,9 @@ using Ext_Dynamics_API.Canvas.DataAccessModels;
 using Ext_Dynamics_API.Canvas.RequestModels;
 using Ext_Dynamics_API.Configuration.Models;
 using Ext_Dynamics_API.DataAccess;
+using Ext_Dynamics_API.Models;
 using Ext_Dynamics_API.Models.CustomTabModels;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -36,38 +38,43 @@ namespace Ext_Dynamics_API.ResourceManagement
                 var currDbCol = custColsDb.Where(x => x.RelatedDataId == canvasCol.Id).FirstOrDefault();
                 if (currDbCol != null)
                 {
-                    DataColumn newKnownCol;
-                    if (currDbCol.DataType == ColumnDataType.Number)
+                    // The derived data columns should be loaded last since they derive data from other columns
+                    // (hence it being called a "Dervied" column)
+                    if(currDbCol.ColumnType != ColumnType.Derived_Data)
                     {
-                        newKnownCol = new NumericDataColumn
+                        DataColumn newKnownCol;
+                        if (currDbCol.DataType == ColumnDataType.Number)
                         {
-                            Name = canvasCol.Title,
-                            DataType = currDbCol.DataType,
-                            ColumnType = currDbCol.ColumnType,
-                            RelatedDataId = canvasCol.Id,
-                            CalcRule = currDbCol.CalcRule,
-                            ColMaxValue = currDbCol.ColMaxValue,
-                            ColMinValue = currDbCol.ColMinValue,
-                            ColumnId = Guid.NewGuid()
-                        };
-                        ((NumericDataColumn)newKnownCol).Rows = GetCustomDataRowsForNumberColumns(accessToken, courseId, newKnownCol);
-                    }
-                    else
-                    {
-                        newKnownCol = new StringDataColumn
+                            newKnownCol = new NumericDataColumn
+                            {
+                                Name = canvasCol.Title,
+                                DataType = currDbCol.DataType,
+                                ColumnType = currDbCol.ColumnType,
+                                RelatedDataId = canvasCol.Id,
+                                CalcRule = currDbCol.CalcRule,
+                                ColMaxValue = currDbCol.ColMaxValue,
+                                ColMinValue = currDbCol.ColMinValue,
+                                ColumnId = Guid.NewGuid()
+                            };
+                            ((NumericDataColumn)newKnownCol).Rows = GetCustomDataRowsForNumberColumns(accessToken, courseId, newKnownCol);
+                        }
+                        else
                         {
-                            Name = canvasCol.Title,
-                            DataType = currDbCol.DataType,
-                            ColumnType = currDbCol.ColumnType,
-                            RelatedDataId = canvasCol.Id,
-                            CalcRule = currDbCol.CalcRule,
-                            ColMaxValue = currDbCol.ColMaxValue,
-                            ColMinValue = currDbCol.ColMinValue,
-                            ColumnId = Guid.NewGuid()
-                        };
-                        ((StringDataColumn)newKnownCol).Rows = GetCustomDataFromStringColumns(accessToken, courseId, newKnownCol);
+                            newKnownCol = new StringDataColumn
+                            {
+                                Name = canvasCol.Title,
+                                DataType = currDbCol.DataType,
+                                ColumnType = currDbCol.ColumnType,
+                                RelatedDataId = canvasCol.Id,
+                                CalcRule = currDbCol.CalcRule,
+                                ColMaxValue = currDbCol.ColMaxValue,
+                                ColMinValue = currDbCol.ColMinValue,
+                                ColumnId = Guid.NewGuid()
+                            };
+                            ((StringDataColumn)newKnownCol).Rows = GetCustomDataFromStringColumns(accessToken, courseId, newKnownCol);
+                        }
+                        custDataColumns.Add(newKnownCol);
                     }
-                    custDataColumns.Add(newKnownCol);
                 }
                 else
                 {
@@ -106,6 +113,34 @@ namespace Ext_Dynamics_API.ResourceManagement
             return custDataColumns;
         }
 
+        public List<NumericDataColumn> GetDerivedColumns(int courseId, CourseDataTable table)
+        {
+            var derivedColumns = new List<NumericDataColumn>();
+            var custColsDb = _dbCtx.CustomDataColumns.Where(x => x.CourseId == courseId 
+            && x.ColumnType == ColumnType.Derived_Data).ToList();
+
+            foreach(var entry in custColsDb)
+            {
+                var newCol = new NumericDataColumn
+                {
+                    Name = entry.Name,
+                    ColumnType = entry.ColumnType,
+                    RelatedDataId = (entry.RelatedDataId != null) ? (int)entry.RelatedDataId : -1,
+                    DataType = entry.DataType,
+                    CalcRule = entry.CalcRule,
+                    ColMaxValue = entry.ColMaxValue,
+                    ColMinValue = entry.ColMinValue,
+                    ColumnId = Guid.NewGuid(),
+                    Rows = new List<NumericDataRow>()
+                };
+                var derivedColManager = new DerivedColumnManager(table);
+                derivedColManager.LoadDerivedDataColumn(ref newCol);
+                derivedColumns.Add(newCol);
+            }
+
+            return derivedColumns;
+        }
+
         public ColumnDataType GetColumnDataType(string content)
         {
             try
@@ -119,22 +154,125 @@ namespace Ext_Dynamics_API.ResourceManagement
             }
         }
 
+        public bool AddNewColumn(string accessToken, DataColumn column, int courseId, int userId)
+        {
+            switch(column.ColumnType)
+            {
+                case ColumnType.Custom_Canvas_Column: return AddCustomColumn(accessToken, column, courseId, userId);
+                case ColumnType.Derived_Data: return AddDerivedColumn(accessToken, column, courseId, userId);
+                case ColumnType.File_Import: return AddFileColumn(accessToken, column, courseId, userId);
+                default: return false;
+            }
+        }
+
+        public bool AddCustomColumn(string accessToken, DataColumn column, int courseId, int userId)
+        {
+            var request = new CustomColumnCreationRequest
+            {
+                Title = column.Name
+            };
+            
+            try
+            {
+                _canvasDataAccess.AddNewCustomColumn(accessToken, request, courseId);
+            }
+            catch(Exception)
+            {
+                return false;
+            }
+
+            var newEntry = new DataColumnEntry
+            {
+                Name = column.Name,
+                CourseId = courseId,
+                ColMaxValue = column.ColMaxValue,
+                ColMinValue = column.ColMinValue,
+                DataType = column.DataType,
+                RelatedDataId = column.RelatedDataId,
+                UserId = userId,
+                ColumnType = column.ColumnType,
+            };
+
+            _dbCtx.CustomDataColumns.Add(newEntry);
+
+            var success = SaveColumnEntriesChangesConccurently(newEntry);
+
+            return success;
+        }
+
+        public bool AddDerivedColumn(string accessToken, DataColumn column, int courseId, int userId)
+        {
+            return false;
+        }
+
+        public bool AddFileColumn(string accessToken, DataColumn column, int courseId, int userId)
+        {
+            return false;
+        }
+
+        private bool SaveColumnEntriesChangesConccurently(DataColumnEntry newEntry) 
+        {
+            try
+            {
+                _dbCtx.SaveChanges();
+                return true;
+            }
+            catch (DbUpdateConcurrencyException e)
+            {
+                foreach (var item in e.Entries)
+                {
+                    if (item.Entity is CustomColumnDataEntry)
+                    {
+                        var currValues = item.CurrentValues;
+                        var dbValues = item.GetDatabaseValues();
+
+                        foreach (var property in currValues.Properties)
+                        {
+                            var currentValue = currValues[property];
+                            var dbValue = dbValues[property];
+                        }
+
+                        // Refresh the original values to bypass next concurrency check
+                        item.OriginalValues.SetValues(dbValues);
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            catch (Exception)
+            {
+                // Rollback token entry
+                _dbCtx.CustomDataColumns.Remove(newEntry);
+                return false;
+            }
+        }
+
         private List<NumericDataRow> GetCustomDataRowsForNumberColumns(string accessToken, int courseId, DataColumn column)
         {
             var data = new List<NumericDataRow>();
-            var canvasDataEntries = _canvasDataAccess.GetCustomColumnEntries(accessToken, courseId, column.RelatedDataId);
-            if (column.DataType == ColumnDataType.Number)
+            if(column.ColumnType != ColumnType.Derived_Data)
             {
-                foreach (var entry in canvasDataEntries)
+                var canvasDataEntries = _canvasDataAccess.GetCustomColumnEntries(accessToken, courseId, column.RelatedDataId);
+                if (column.DataType == ColumnDataType.Number)
                 {
-                    data.Add(new NumericDataRow
+                    foreach (var entry in canvasDataEntries)
                     {
-                        AssociatedUser = Students.Where(x => x.Id == entry.UserId).FirstOrDefault(),
-                        ColumnId = column.ColumnId,
-                        ValueChanged = false,
-                        Value = double.Parse(entry.Content)
-                    });
+                        data.Add(new NumericDataRow
+                        {
+                            AssociatedUser = Students.Where(x => x.Id == entry.UserId).FirstOrDefault(),
+                            ColumnId = column.ColumnId,
+                            ValueChanged = false,
+                            Value = double.Parse(entry.Content)
+                        });
+                    }
                 }
+            }
+            else
+            {
+
             }
             return data;
         }
@@ -187,26 +325,29 @@ namespace Ext_Dynamics_API.ResourceManagement
         {
             foreach (var column in table.AssignmentGradeColumns)
             {
-                var numericCol = (NumericDataColumn)column;
-                var alteredRows = new List<NumericDataRow>();
-                var newRowEntries = new List<AssignmentGradeChangeEntry>();
-                alteredRows.AddRange(numericCol.Rows.Where(x => x.ValueChanged).ToList());
-                foreach (var row in alteredRows)
+                if(column.ColumnType != ColumnType.Derived_Data)
                 {
-                    newRowEntries.Add(new AssignmentGradeChangeEntry
+                    var numericCol = (NumericDataColumn)column;
+                    var alteredRows = new List<NumericDataRow>();
+                    var newRowEntries = new List<AssignmentGradeChangeEntry>();
+                    alteredRows.AddRange(numericCol.Rows.Where(x => x.ValueChanged).ToList());
+                    foreach (var row in alteredRows)
                     {
-                        StudentId = row.AssociatedUser.Id,
-                        NewGrade = row.NewValue
-                    });
-                }
-                
-                try
-                {
-                    _canvasDataAccess.SetAssignmentColumnEntries(accessToken, courseId, column.RelatedDataId, newRowEntries);
-                }
-                catch(Exception)
-                {
-                    return false;
+                        newRowEntries.Add(new AssignmentGradeChangeEntry
+                        {
+                            StudentId = row.AssociatedUser.Id,
+                            NewGrade = row.NewValue
+                        });
+                    }
+
+                    try
+                    {
+                        _canvasDataAccess.SetAssignmentColumnEntries(accessToken, courseId, column.RelatedDataId, newRowEntries);
+                    }
+                    catch (Exception)
+                    {
+                        return false;
+                    }
                 }
             }
             return true;

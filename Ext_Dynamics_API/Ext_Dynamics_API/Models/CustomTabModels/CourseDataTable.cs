@@ -25,6 +25,28 @@ namespace Ext_Dynamics_API.Models.CustomTabModels
             
         }
 
+        public DataColumn this[string name]
+        {
+            get
+            {
+                foreach(var col in AssignmentGradeColumns)
+                {
+                    if(col.Name.Equals(name))
+                    {
+                        return col;
+                    }
+                }
+                foreach(var col in CustomDataColumns)
+                {
+                    if (col.Name.Equals(name))
+                    {
+                        return col;
+                    }
+                }
+                return null;
+            }
+        }
+
         public static CourseDataTable LoadDataTable(int courseId, string accessToken, ExtensibleDbContext dbContext)
         {
             var table = new CourseDataTable
@@ -43,6 +65,10 @@ namespace Ext_Dynamics_API.Models.CustomTabModels
 
             // Load custom data columns into table with row data
             GetCustomDataColumns(ref table, accessToken, courseId, dbContext);
+
+            // Get derived columns seperately from and after all the other columns have been retreived
+            var tableManager = new CourseDataTableManager(dbContext, table.Students);
+            table.CustomDataColumns.AddRange(tableManager.GetDerivedColumns(courseId, table));
 
             return table;
         }

@@ -113,5 +113,43 @@ namespace Ext_Dynamics_API.Controllers
                 return NotFound("Failied to Edit Canvas Table");
             }
         }
+
+        [HttpPost]
+        [Route("AddNewTableColumn/{courseId}")]
+        public IActionResult AddNewTableColumn([FromRoute] int courseId, [FromBody] DataColumn newColumn)
+        {
+            var userToken = _tokenManager.ReadAndValidateToken(Request.Headers[_config.authHeader]);
+
+            JwtSecurityToken decodedToken;
+            var handler = new JwtSecurityTokenHandler();
+            try
+            {
+                decodedToken = handler.ReadJwtToken(userToken);
+            }
+            catch (ArgumentException)
+            {
+                return new UnauthorizedObjectResult("User Token Is Not Valid");
+            }
+
+            var sysUserId = _tokenManager.GetUserIdFromToken(decodedToken);
+
+            var canvasPat = _canvasTokenManager.GetActiveAccessToken(sysUserId);
+
+            if (canvasPat == null)
+            {
+                return new BadRequestObjectResult("No Canvas PAT Selected/Activated!");
+            }
+
+            var insertionSuccess = _tableManager.AddCustomColumn(canvasPat, newColumn, courseId, sysUserId);
+
+            if(insertionSuccess)
+            {
+                return Ok("Successfully added new Column");
+            }
+            else
+            {
+                return NotFound("An error occured while adding a new column");
+            }
+        }
     }
 }

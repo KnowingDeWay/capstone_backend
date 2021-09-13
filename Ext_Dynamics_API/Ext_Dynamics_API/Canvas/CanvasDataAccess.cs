@@ -132,6 +132,7 @@ namespace Ext_Dynamics_API.Canvas
         {
             string requestUrl = $"{_config.canvasBaseUrl}/api/v1/courses/{courseId}/custom_gradebook_column_data";
             var request = WebRequest.CreateHttp(requestUrl);
+            request.Headers.Add("Authorization", $"Bearer {accessToken}");
             request.ContentType = "application/json";
             request.Method = "PUT";
             using (var streamWriter = new StreamWriter(request.GetRequestStream()))
@@ -140,6 +141,25 @@ namespace Ext_Dynamics_API.Canvas
                 streamWriter.Write(jsonContent);
             }
             request.GetResponse();
+        }
+
+        public void AddNewCustomColumn(string accessToken, CustomColumnCreationRequest request, int courseId)
+        {
+            string requestUrl = $"/api/v1/courses/{courseId}/custom_gradebook_columns";
+            var webRequest = new HttpRequestMessage(new HttpMethod("POST"), requestUrl);
+            webRequest.Headers.Add("Authorization", $"Bearer {accessToken}");
+            var formContent = new MultipartFormDataContent();
+            formContent.Add(new StringContent(request.Title), "column[title]");
+            formContent.Add(new StringContent($"{request.Position}"), "column[position]");
+            formContent.Add(new StringContent($"{request.Hidden}"), "column[hidden]");
+            formContent.Add(new StringContent($"{request.TeacherNotes}"), "column[teacher_notes]");
+            formContent.Add(new StringContent($"{request.ReadOnly}"), "column[read_only]");
+            webRequest.Content = formContent;
+            var response = _httpClient.Send(webRequest);
+
+            // Clean up
+            webRequest.Dispose();
+            response.Dispose();
         }
 
         public void Dispose()
