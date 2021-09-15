@@ -9,5 +9,6 @@ namespace Ext_Dynamics_API.Models.CustomTabModels
     {
         public string Name { get; set; }
         public int Id { get; set; }
+        public string InstitutionId { get; set; }
     }
 }

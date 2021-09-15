@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Ext_Dynamics_API.Models.CustomTabModels
 {
-    public class DataColumn
+    public class CourseDataColumn
     {
         public Guid ColumnId { get; set; }
 

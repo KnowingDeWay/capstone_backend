@@ -143,7 +143,7 @@ namespace Ext_Dynamics_API.Canvas
             request.GetResponse();
         }
 
-        public void AddNewCustomColumn(string accessToken, CustomColumnCreationRequest request, int courseId)
+        public CustomColumn AddNewCustomColumn(string accessToken, CustomColumnCreationRequest request, int courseId)
         {
             string requestUrl = $"/api/v1/courses/{courseId}/custom_gradebook_columns";
             var webRequest = new HttpRequestMessage(new HttpMethod("POST"), requestUrl);
@@ -156,10 +156,27 @@ namespace Ext_Dynamics_API.Canvas
             formContent.Add(new StringContent($"{request.ReadOnly}"), "column[read_only]");
             webRequest.Content = formContent;
             var response = _httpClient.Send(webRequest);
+            CustomColumn column;
+            using (var streamReader = new StreamReader(response.Content.ReadAsStream()))
+            {
+                string columnJson = streamReader.ReadToEnd();
+                column = JsonConvert.DeserializeObject<CustomColumn>(columnJson);
+            }
 
             // Clean up
             webRequest.Dispose();
             response.Dispose();
+
+            return column;
+        }
+
+        public void DeleteCustomColumn(string accessToken, int courseId, int colId)
+        {
+            string requestUrl = $"{_config.canvasBaseUrl}/api/v1/courses/{courseId}/custom_gradebook_columns/{colId}";
+            var request = WebRequest.Create(requestUrl);
+            request.Headers.Add("Authorization", $"Bearer {accessToken}");
+            request.Method = "DELETE";
+            var response = (HttpWebResponse)request.GetResponse();
         }
 
         public void Dispose()

@@ -15,8 +15,8 @@ namespace Ext_Dynamics_API.Models.CustomTabModels
 {
     public class CourseDataTable
     {
-        public List<DataColumn> AssignmentGradeColumns { get; set; }
-        public List<DataColumn> CustomDataColumns { get; set; }
+        public List<CourseDataColumn> AssignmentGradeColumns { get; set; }
+        public List<CourseDataColumn> CustomDataColumns { get; set; }
         public List<DataTableStudent> Students { get; set; } // Student names for example, y-axis values of the table
         public int CourseId { get; set; }
 
@@ -25,7 +25,7 @@ namespace Ext_Dynamics_API.Models.CustomTabModels
             
         }
 
-        public DataColumn this[string name]
+        public CourseDataColumn this[string name]
         {
             get
             {
@@ -78,8 +78,8 @@ namespace Ext_Dynamics_API.Models.CustomTabModels
             var newTable = new CourseDataTable
             {
                 CourseId = table.courseId,
-                AssignmentGradeColumns = new List<DataColumn>(),
-                CustomDataColumns = new List<DataColumn>(),
+                AssignmentGradeColumns = new List<CourseDataColumn>(),
+                CustomDataColumns = new List<CourseDataColumn>(),
                 Students = new List<DataTableStudent>()
             };
             foreach(var col in table.assignmentGradeColumns)
@@ -208,16 +208,17 @@ namespace Ext_Dynamics_API.Models.CustomTabModels
                 var tbStudent = new DataTableStudent
                 {
                     Name = student.Name,
-                    Id = student.Id
+                    Id = student.Id,
+                    InstitutionId = student.SisUserId
                 };
                 tableStudents.Add(tbStudent);
             }
             return tableStudents;
         }
 
-        private static List<DataColumn> GetAssignmentColumns(int courseId, string accessToken)
+        private static List<CourseDataColumn> GetAssignmentColumns(int courseId, string accessToken)
         {
-            var assignmentCols = new List<DataColumn>();
+            var assignmentCols = new List<CourseDataColumn>();
             var config = SystemConfig.LoadConfig();
             var dataAccess = new CanvasDataAccess(config);
             var assignments = dataAccess.GetCourseAssignments(accessToken, courseId);
@@ -267,7 +268,7 @@ namespace Ext_Dynamics_API.Models.CustomTabModels
         private static void GetCustomDataColumns(ref CourseDataTable table, string accessToken, int courseId, 
             ExtensibleDbContext dbCtx)
         {
-            var customCols = new List<DataColumn>();
+            var customCols = new List<CourseDataColumn>();
             var config = SystemConfig.LoadConfig();
             var colManager = new CourseDataTableManager(dbCtx, table.Students);
             table.CustomDataColumns = colManager.GetCustomDataColumns(accessToken, courseId);

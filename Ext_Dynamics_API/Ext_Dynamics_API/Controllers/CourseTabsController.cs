@@ -2,6 +2,7 @@
 using Ext_Dynamics_API.Configuration.Models;
 using Ext_Dynamics_API.DataAccess;
 using Ext_Dynamics_API.Models.CustomTabModels;
+using Ext_Dynamics_API.RequestModels;
 using Ext_Dynamics_API.ResourceManagement;
 using Ext_Dynamics_API.ResponseModels;
 using Ext_Dynamics_API.Security;
@@ -116,7 +117,7 @@ namespace Ext_Dynamics_API.Controllers
 
         [HttpPost]
         [Route("AddNewTableColumn/{courseId}")]
-        public IActionResult AddNewTableColumn([FromRoute] int courseId, [FromBody] DataColumn newColumn)
+        public IActionResult AddNewTableColumn([FromRoute] int courseId, [FromBody] NewColumnRequest newColRequest)
         {
             var userToken = _tokenManager.ReadAndValidateToken(Request.Headers[_config.authHeader]);
 
@@ -140,7 +141,10 @@ namespace Ext_Dynamics_API.Controllers
                 return new BadRequestObjectResult("No Canvas PAT Selected/Activated!");
             }
 
-            var insertionSuccess = _tableManager.AddCustomColumn(canvasPat, newColumn, courseId, sysUserId);
+            var table = CourseDataTable.LoadDataTable(courseId, canvasPat, _dbCtx);
+
+            var insertionSuccess = _tableManager.AddNewColumn(canvasPat, newColRequest.NewColumn, courseId, sysUserId, 
+                table, newColRequest.CsvFileContent);
 
             if(insertionSuccess)
             {
