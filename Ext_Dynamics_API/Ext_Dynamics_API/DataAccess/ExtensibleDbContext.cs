@@ -43,7 +43,6 @@ namespace Ext_Dynamics_API.DataAccess
             modelBuilder.Entity<UserTokenEntry>().ToTable("Token_Entries");
 
             modelBuilder.Entity<DataColumnEntry>().Property(x => x.RowVersion).IsRowVersion();
-            modelBuilder.Entity<DataColumnEntry>().HasAlternateKey(x => x.CourseId);
             modelBuilder.Entity<DataColumnEntry>().HasAlternateKey(x => x.RelatedDataId);
             modelBuilder.Entity<DataColumnEntry>().ToTable("Data_Column_Entries");
         }

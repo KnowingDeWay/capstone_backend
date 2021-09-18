@@ -159,7 +159,7 @@ namespace Ext_Dynamics_API.ResourceManagement
         public bool AddNewColumn(string accessToken, CourseDataColumn column, int courseId, 
             int userId, CourseDataTable table, string csvFileContent)
         {
-            switch(column.ColumnType)
+            switch (column.ColumnType)
             {
                 case ColumnType.Custom_Canvas_Column: return AddCustomColumn(accessToken, column, courseId, userId);
                 case ColumnType.Derived_Data: return AddDerivedColumn(accessToken, column, courseId, userId, table);
@@ -173,18 +173,37 @@ namespace Ext_Dynamics_API.ResourceManagement
             return _dbCtx.CustomDataColumns.Where(x => x.Name.Equals(columnName)).FirstOrDefault() != null;
         }
 
+        public bool DeleteCustomColumn(string accessToken, int courseId, int relatedDataId)
+        {
+            var column = _dbCtx.CustomDataColumns.Where(x => x.RelatedDataId == relatedDataId).FirstOrDefault();
+            if(column != null)
+            {
+                try
+                {
+                    _canvasDataAccess.DeleteCustomColumn(accessToken, courseId, relatedDataId);
+                }
+                catch(Exception)
+                {
+                    return false;
+                }
+
+                _dbCtx.CustomDataColumns.Remove(column);
+                _dbCtx.SaveChanges();
+
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
         private bool AddCustomColumn(string accessToken, CourseDataColumn column, int courseId, int userId)
         {
             var request = new CustomColumnCreationRequest
             {
                 Title = column.Name
             };
-
-            // Column names should be unique
-            if(IsColumnExists(column.Name))
-            {
-                return false;
-            }
 
             CustomColumn newCol;
             
@@ -234,12 +253,6 @@ namespace Ext_Dynamics_API.ResourceManagement
             {
                 Title = column.Name
             };
-
-            // Column names should be unique
-            if (IsColumnExists(column.Name))
-            {
-                return false;
-            }
 
             CustomColumn newCol;
 
@@ -317,12 +330,6 @@ namespace Ext_Dynamics_API.ResourceManagement
             {
                 Title = column.Name
             };
-
-            // Column names should be unique
-            if (IsColumnExists(column.Name))
-            {
-                return false;
-            }
 
             CustomColumn newCol;
 

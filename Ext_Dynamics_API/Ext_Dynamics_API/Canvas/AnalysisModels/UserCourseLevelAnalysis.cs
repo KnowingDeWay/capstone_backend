@@ -37,19 +37,19 @@ namespace Ext_Dynamics_API.Canvas.AnalysisModels
         public bool Muted { get; set; }
 
         [JsonProperty("max_score")]
-        public double MaxScore { get; set; }
+        public double? MaxScore { get; set; }
 
         [JsonProperty("min_score")]
-        public double MinScore { get; set; }
+        public double? MinScore { get; set; }
 
         [JsonProperty("first_quartile")]
-        public double FirstQuartile { get; set; }
+        public double? FirstQuartile { get; set; }
 
         [JsonProperty("median")]
-        public double Median { get; set; }
+        public double? Median { get; set; }
 
         [JsonProperty("third_quartile")]
-        public double ThirdQuartile { get; set; }
+        public double? ThirdQuartile { get; set; }
 
         [JsonProperty("module_ids")]
         public List<int> ModuleIds { get; set; }

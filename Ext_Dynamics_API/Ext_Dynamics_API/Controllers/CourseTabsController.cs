@@ -141,7 +141,33 @@ namespace Ext_Dynamics_API.Controllers
                 return new BadRequestObjectResult("No Canvas PAT Selected/Activated!");
             }
 
+            // Column names should be unique
+            if(_tableManager.IsColumnExists(newColRequest.NewColumn.Name))
+            {
+                return new BadRequestObjectResult("A custom column by this name already exists!");
+            }
+
             var table = CourseDataTable.LoadDataTable(courseId, canvasPat, _dbCtx);
+
+            // If the user does not want to set a min or max value then it's just best to make these numbers set
+            // to the mininum and maximum values that are programatically acceptable
+            if(newColRequest.NewColumn.ColMinValue == default)
+            {
+                newColRequest.NewColumn.ColMinValue = double.MinValue;
+            }
+
+            if(newColRequest.NewColumn.ColMaxValue == default)
+            {
+                newColRequest.NewColumn.ColMaxValue = double.MaxValue;
+            }
+
+            // Obviously, the maximum value of a column cannot be set to a number less than the mininum value of that column.
+            // This would normally be done on the front-end and it is but front-end validation is not realiable as it is suspectible
+            // to manipulation by users
+            if(newColRequest.NewColumn.ColMaxValue < newColRequest.NewColumn.ColMinValue)
+            {
+                return BadRequest("Maximum Column value must be greater to or equal to the Mininum column value!");
+            }
 
             var insertionSuccess = _tableManager.AddNewColumn(canvasPat, newColRequest.NewColumn, courseId, sysUserId, 
                 table, newColRequest.CsvFileContent);
@@ -153,6 +179,44 @@ namespace Ext_Dynamics_API.Controllers
             else
             {
                 return NotFound("An error occured while adding a new column");
+            }
+        }
+
+        [HttpDelete]
+        [Route("DeleteCustomColumn/{courseId}/{relatedDataId}")]
+        public IActionResult DeleteCustomColumn([FromRoute] int courseId, [FromRoute] int relatedDataId)
+        {
+            var userToken = _tokenManager.ReadAndValidateToken(Request.Headers[_config.authHeader]);
+
+            JwtSecurityToken decodedToken;
+            var handler = new JwtSecurityTokenHandler();
+            try
+            {
+                decodedToken = handler.ReadJwtToken(userToken);
+            }
+            catch (ArgumentException)
+            {
+                return new UnauthorizedObjectResult("User Token Is Not Valid");
+            }
+
+            var sysUserId = _tokenManager.GetUserIdFromToken(decodedToken);
+
+            var canvasPat = _canvasTokenManager.GetActiveAccessToken(sysUserId);
+
+            if (canvasPat == null)
+            {
+                return new BadRequestObjectResult("No Canvas PAT Selected/Activated!");
+            }
+
+            var deletionSuccess = _tableManager.DeleteCustomColumn(canvasPat, courseId, relatedDataId);
+
+            if (deletionSuccess)
+            {
+                return Ok("Successfully deleted new Column");
+            }
+            else
+            {
+                return NotFound("An error occured while deleting a column");
             }
         }
     }
