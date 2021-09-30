@@ -29,13 +29,17 @@ namespace Ext_Dynamics_API.ResourceManagement
             for(int i = 1; i < csvLines.Length; i++)
             {
                 var currLine = csvLines[i].Split(",");
-                var newEntry = new CustomColumnDataEntry
+                var student = students.Where(x => x.InstitutionId.Equals(currLine[0])).FirstOrDefault();
+                if(student != null)
                 {
-                    ColumnId = columnId,
-                    Content = currLine[1],
-                    UserId = students.Where(x => x.InstitutionId.Equals(currLine[0])).FirstOrDefault().Id
-                };
-                custColReq.ColumnData.Add(newEntry);
+                    var newEntry = new CustomColumnDataEntry
+                    {
+                        ColumnId = columnId,
+                        Content = currLine[1],
+                        UserId = student.Id
+                    };
+                    custColReq.ColumnData.Add(newEntry);
+                }
             }
             return custColReq;
         }

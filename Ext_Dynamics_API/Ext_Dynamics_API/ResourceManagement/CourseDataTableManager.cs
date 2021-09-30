@@ -30,6 +30,12 @@ namespace Ext_Dynamics_API.ResourceManagement
             Students = students;
         }
 
+        /// <summary>
+        /// Returns the list of custom data columns related with the Canvas Gradebook of a particular course
+        /// </summary>
+        /// <param name="accessToken">The Canvas Personal Access Token being used</param>
+        /// <param name="courseId">The id of the course</param>
+        /// <returns>List&lt;CourseDataColumn>: Custom Columns of Canvas Gradebook</returns>
         public List<CourseDataColumn> GetCustomDataColumns(string accessToken, int courseId)
         {
             var custDataColumns = new List<CourseDataColumn>();
@@ -88,6 +94,14 @@ namespace Ext_Dynamics_API.ResourceManagement
                     };
                     var newColRows = GetCustomColumnDataRowsForUnknownTypes(accessToken, courseId, newCol);
                     newCol.DataType = GetColumnDataType(newColRows[0].Value);
+                    if (newColRows != null)
+                    {
+                        if(newColRows.Count > 0)
+                        {
+
+                        }
+                    }
+
                     if (newCol.DataType == ColumnDataType.Number)
                     {
                         var numCol = (NumericDataColumn)newCol;
@@ -115,6 +129,12 @@ namespace Ext_Dynamics_API.ResourceManagement
             return custDataColumns;
         }
 
+        /// <summary>
+        /// Loads Derived Custom Columns for a particular course
+        /// </summary>
+        /// <param name="courseId">The id of the course</param>
+        /// <param name="table">The table to load the columns into</param>
+        /// <returns>List&lt;NumericDataColumn>: List of Derived columns in the Canvas gradebook</returns>
         public List<NumericDataColumn> GetDerivedColumns(int courseId, CourseDataTable table)
         {
             var derivedColumns = new List<NumericDataColumn>();
@@ -127,7 +147,7 @@ namespace Ext_Dynamics_API.ResourceManagement
                 {
                     Name = entry.Name,
                     ColumnType = entry.ColumnType,
-                    RelatedDataId = (entry.RelatedDataId != null) ? (int)entry.RelatedDataId : -1,
+                    RelatedDataId = entry.RelatedDataId,
                     DataType = entry.DataType,
                     CalcRule = entry.CalcRule,
                     ColMaxValue = entry.ColMaxValue,
@@ -143,6 +163,11 @@ namespace Ext_Dynamics_API.ResourceManagement
             return derivedColumns;
         }
 
+        /// <summary>
+        /// Gets the datatype for a column that has been retreived from the Canvas Gradebook.
+        /// </summary>
+        /// <param name="content">Any value from any row in that particular column</param>
+        /// <returns>ColumnDataType: An enumerable which specifies whether the column is a numeric or string column</returns>
         public ColumnDataType GetColumnDataType(string content)
         {
             try
@@ -156,23 +181,45 @@ namespace Ext_Dynamics_API.ResourceManagement
             }
         }
 
+        /// <summary>
+        /// Adds a new custom column to the Canvas gradebook
+        /// </summary>
+        /// <param name="accessToken">The Canvas access token of the user</param>
+        /// <param name="column">The column to add to the Canvas Gradebook</param>
+        /// <param name="courseId">The id of the course to add the column to</param>
+        /// <param name="userId">The id of the user in <b>this</b> system</param>
+        /// <param name="table">The table to add the custom column to</param>
+        /// <param name="csvFileContent">The contents of the csv file (if applicable) as a string</param>
+        /// <returns>bool: Whether or not this operation succeeded</returns>
         public bool AddNewColumn(string accessToken, CourseDataColumn column, int courseId, 
             int userId, CourseDataTable table, string csvFileContent)
         {
-            switch (column.ColumnType)
+            return column.ColumnType switch
             {
-                case ColumnType.Custom_Canvas_Column: return AddCustomColumn(accessToken, column, courseId, userId);
-                case ColumnType.Derived_Data: return AddDerivedColumn(accessToken, column, courseId, userId, table);
-                case ColumnType.File_Import: return AddFileColumn(accessToken, column, courseId, userId, csvFileContent);
-                default: return false;
-            }
+                ColumnType.Custom_Canvas_Column => AddCustomColumn(accessToken, column, courseId, userId),
+                ColumnType.Derived_Data => AddDerivedColumn(accessToken, column, courseId, userId, table),
+                ColumnType.File_Import => AddFileColumn(accessToken, column, courseId, userId, csvFileContent),
+                _ => false,
+            };
         }
 
+        /// <summary>
+        /// Determines whether or not a column with the specified name exists
+        /// </summary>
+        /// <param name="columnName">The name of the column</param>
+        /// <returns>bool: Whether or not a column with this name exists</returns>
         public bool IsColumnExists(string columnName)
         {
             return _dbCtx.CustomDataColumns.Where(x => x.Name.Equals(columnName)).FirstOrDefault() != null;
         }
 
+        /// <summary>
+        /// Deletes a custom column in the Canvas Gradebook for a specified course
+        /// </summary>
+        /// <param name="accessToken">The access token of a particular user</param>
+        /// <param name="courseId">The id of the course in Canvas</param>
+        /// <param name="relatedDataId">The id of the custom column (this is found in column.RelatedDataId)</param>
+        /// <returns>bool: Whether or not the deletion was a success</returns>
         public bool DeleteCustomColumn(string accessToken, int courseId, int relatedDataId)
         {
             var column = _dbCtx.CustomDataColumns.Where(x => x.RelatedDataId == relatedDataId).FirstOrDefault();
@@ -202,7 +249,10 @@ namespace Ext_Dynamics_API.ResourceManagement
         {
             var request = new CustomColumnCreationRequest
             {
-                Title = column.Name
+                Title = column.Name,
+                Hidden = false,
+                TeacherNotes = false,
+                ReadOnly = false
             };
 
             CustomColumn newCol;
@@ -240,7 +290,7 @@ namespace Ext_Dynamics_API.ResourceManagement
                 }
                 catch (Exception)
                 {
-
+                    return false;
                 }
             }
 
@@ -251,7 +301,10 @@ namespace Ext_Dynamics_API.ResourceManagement
         {
             var request = new CustomColumnCreationRequest
             {
-                Title = column.Name
+                Title = column.Name,
+                Hidden = false,
+                TeacherNotes = false,
+                ReadOnly = true // Derived columns are not to be edited manually
             };
 
             CustomColumn newCol;
@@ -269,6 +322,7 @@ namespace Ext_Dynamics_API.ResourceManagement
             {
                 Name = column.Name,
                 CourseId = courseId,
+                CalcRule = column.CalcRule,
                 ColMaxValue = column.ColMaxValue,
                 ColMinValue = column.ColMinValue,
                 DataType = column.DataType,
@@ -306,7 +360,7 @@ namespace Ext_Dynamics_API.ResourceManagement
             foreach(var row in numCol.Rows)
             {
                 custColsRequest.ColumnData.Add(new CustomColumnDataEntry { 
-                    ColumnId = numCol.RelatedDataId,
+                    ColumnId = newCol.Id,
                     Content = $"{row.Value}",
                     UserId = row.AssociatedUser.Id
                 });
@@ -328,7 +382,10 @@ namespace Ext_Dynamics_API.ResourceManagement
         {
             var request = new CustomColumnCreationRequest
             {
-                Title = column.Name
+                Title = column.Name,
+                Hidden = false,
+                TeacherNotes = false,
+                ReadOnly = false
             };
 
             CustomColumn newCol;

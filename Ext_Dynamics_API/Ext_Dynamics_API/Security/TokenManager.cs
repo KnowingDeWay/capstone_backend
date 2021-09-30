@@ -28,6 +28,11 @@ namespace Ext_Dynamics_API.Security
             _config = config;
         }
 
+        /// <summary>
+        /// Issues a new JWT user token for this application
+        /// </summary>
+        /// <param name="user">The user to issue the token to</param>
+        /// <returns>string: The issued token in its encoded format</returns>
         public string IssueToken(ApplicationUserAccount user)
         {
             var secKey = _config.tokenSecKey;
@@ -68,12 +73,21 @@ namespace Ext_Dynamics_API.Security
             return encodedToken;
         }
 
+        /// <summary>
+        /// Reads a token from the Authorization HTTP Header
+        /// </summary>
+        /// <param name="authHeader">The content in the Authorization Header</param>
+        /// <returns>string: The encoded token if it is valid, otherwise returns an empty string</returns>
         public string ReadAndValidateToken(string authHeader)
         {
             var token = authHeader.Split("Bearer ")[1];
             return IsTokenValid(token) ? token : "";
         }
 
+        /// <summary>
+        /// Deletes expired user tokens for a particular user
+        /// </summary>
+        /// <param name="userId">The id of the user being authenticated</param>
         public void DeleteUserTokens(int userId)
         {
             var user = _dbCtx.UserAccounts.Where(x => x.Id == userId).FirstOrDefault();
@@ -85,11 +99,21 @@ namespace Ext_Dynamics_API.Security
             }
         }
 
+        /// <summary>
+        /// Determines whether or not the token is valid in terms of having a valid format <b>and</b> whether or not it is expired
+        /// </summary>
+        /// <param name="encodedToken">The JWT user token in encoded format</param>
+        /// <returns>bool: Whether or not the token is valid <b>and</b> not expired</returns>
         public bool IsTokenValid(string encodedToken)
         {
             return _dbCtx.UserTokenEntries.Where(x => x.EncodedToken.Equals(encodedToken) && x.ExpiryDate > DateTime.UtcNow).FirstOrDefault() != null;
         }
 
+        /// <summary>
+        /// Extracts the id of the user in this system from the supplied JWT user token
+        /// </summary>
+        /// <param name="token">The token in its full and <b>decoded</b> format</param>
+        /// <returns>int: The id of the user in the system</returns>
         public int GetUserIdFromToken(JwtSecurityToken token)
         {
             var userClaim = token.Claims.Where(x => x.Type.Equals("user_id")).FirstOrDefault();
@@ -101,6 +125,11 @@ namespace Ext_Dynamics_API.Security
             return userId;
         }
 
+        /// <summary>
+        /// Gets the user type of the person logged in (e.g. Instructor or System Admin etc) 
+        /// </summary>
+        /// <param name="token">The token in its full and <b>decoded</b> format</param>
+        /// <returns>UserType: An enumerable that specifies the type of user logged in</returns>
         public UserType GetUserTypeFromToken(JwtSecurityToken token)
         {
             var userClaim = token.Claims.Where(x => x.Type.Equals("user_type")).FirstOrDefault();

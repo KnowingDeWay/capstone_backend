@@ -47,6 +47,13 @@ namespace Ext_Dynamics_API.Models.CustomTabModels
             }
         }
 
+        /// <summary>
+        /// Creates an instance of and loads the data table and all its related columns and the rows for those columns
+        /// </summary>
+        /// <param name="courseId">The id of the course for which to retreive the Canvas Gradebook for</param>
+        /// <param name="accessToken">The Canvas access token for the user</param>
+        /// <param name="dbContext">The database context of the application</param>
+        /// <returns>CourseDataTable: A re-representation of the Canvas Gradebook for the purposes of this system</returns>
         public static CourseDataTable LoadDataTable(int courseId, string accessToken, ExtensibleDbContext dbContext)
         {
             var table = new CourseDataTable
@@ -73,6 +80,11 @@ namespace Ext_Dynamics_API.Models.CustomTabModels
             return table;
         }
 
+        /// <summary>
+        /// Loads an instance of the Course Data Table from a dynamic JSON representation of the table
+        /// </summary>
+        /// <param name="table">The dynamic JSON representation of the table</param>
+        /// <returns>CourseDataTable: A re-representation of the Canvas Gradebook for the purposes of this system</returns>
         public static CourseDataTable LoadDataTableFromDynamicObject(dynamic table)
         {
             var newTable = new CourseDataTable

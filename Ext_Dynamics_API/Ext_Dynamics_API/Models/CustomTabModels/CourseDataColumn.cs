@@ -19,6 +19,44 @@ namespace Ext_Dynamics_API.Models.CustomTabModels
         public int RelatedDataId { get; set; } // The id of the assignment/custom tab on Canvas this column might be reffering to
         public double ColMaxValue { get; set; } // Max permssible value that can be entered for numerical columns
         public double ColMinValue { get; set; } // Min permssible value that can be entered for numerical columns
+
+        /// <summary>
+        /// Creates a typed column based off the existing column
+        /// </summary>
+        /// <returns>CourseDataColumn: Creates a typed column (numeric or string column)</returns>
+        public CourseDataColumn ConvertToTypedColumn()
+        {
+            CourseDataColumn newCol;
+            if(DataType == ColumnDataType.Number)
+            {
+                newCol = new NumericDataColumn()
+                {
+                    Name = Name,
+                    DataType = DataType,
+                    ColumnType = ColumnType,
+                    CalcRule = CalcRule,
+                    RelatedDataId = RelatedDataId,
+                    ColMaxValue = ColMaxValue,
+                    ColMinValue = ColMinValue,
+                    Rows = new List<NumericDataRow>()
+                };
+            }
+            else
+            {
+                newCol = new StringDataColumn()
+                {
+                    Name = Name,
+                    DataType = DataType,
+                    ColumnType = ColumnType,
+                    CalcRule = CalcRule,
+                    RelatedDataId = RelatedDataId,
+                    ColMaxValue = ColMaxValue,
+                    ColMinValue = ColMinValue,
+                    Rows = new List<StringDataRow>()
+                };
+            }
+            return newCol;
+        }
     }
 
     public enum ColumnDataType

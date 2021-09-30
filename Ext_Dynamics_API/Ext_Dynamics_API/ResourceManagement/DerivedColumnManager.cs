@@ -17,6 +17,10 @@ namespace Ext_Dynamics_API.ResourceManagement
             _courseTable = table;
         }
 
+        /// <summary>
+        /// Loads row data into a derived data column
+        /// </summary>
+        /// <param name="column">The dervied data column to load data into</param>
         public void LoadDerivedDataColumn(ref NumericDataColumn column)
         {
             var tableColumns = new List<NumericDataColumn>();

@@ -141,8 +141,13 @@ namespace Ext_Dynamics_API.Controllers
                 return new BadRequestObjectResult("No Canvas PAT Selected/Activated!");
             }
 
+            if (newColRequest == null)
+            {
+                return BadRequest("Invalid Column Creation Request!");
+            }
+
             // Column names should be unique
-            if(_tableManager.IsColumnExists(newColRequest.NewColumn.Name))
+            if (_tableManager.IsColumnExists(newColRequest.NewColumn.Name))
             {
                 return new BadRequestObjectResult("A custom column by this name already exists!");
             }
@@ -169,7 +174,10 @@ namespace Ext_Dynamics_API.Controllers
                 return BadRequest("Maximum Column value must be greater to or equal to the Mininum column value!");
             }
 
-            var insertionSuccess = _tableManager.AddNewColumn(canvasPat, newColRequest.NewColumn, courseId, sysUserId, 
+            var newCol = newColRequest.NewColumn.ConvertToTypedColumn();
+
+            _tableManager.Students = table.Students;
+            var insertionSuccess = _tableManager.AddNewColumn(canvasPat, newCol, courseId, sysUserId, 
                 table, newColRequest.CsvFileContent);
 
             if(insertionSuccess)
@@ -212,7 +220,7 @@ namespace Ext_Dynamics_API.Controllers
 
             if (deletionSuccess)
             {
-                return Ok("Successfully deleted new Column");
+                return Ok("Successfully deleted Custom Column");
             }
             else
             {

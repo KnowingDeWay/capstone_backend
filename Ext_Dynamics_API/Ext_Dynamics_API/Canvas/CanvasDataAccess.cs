@@ -98,7 +98,7 @@ namespace Ext_Dynamics_API.Canvas
 
         public List<ColumnDatum> GetCustomColumnEntries(string accessToken, int courseId, int colId)
         {
-            string requestUrl = $"{_config.canvasBaseUrl}/api/v1/courses/{courseId}/custom_gradebook_columns/{colId}/data";
+            string requestUrl = $"{_config.canvasBaseUrl}/courses/{courseId}/custom_gradebook_columns/{colId}/data";
             var request = WebRequest.Create(requestUrl);
             request.Headers.Add("Authorization", $"Bearer {accessToken}");
             var response = (HttpWebResponse)request.GetResponse();
@@ -130,7 +130,7 @@ namespace Ext_Dynamics_API.Canvas
 
         public void SetCustomColumnEntries(string accessToken, int courseId, CustomColumnsUpdateRequest updateRequest)
         {
-            string requestUrl = $"{_config.canvasBaseUrl}/api/v1/courses/{courseId}/custom_gradebook_column_data";
+            string requestUrl = $"{_config.canvasBaseUrl}/courses/{courseId}/custom_gradebook_column_data";
             var request = WebRequest.CreateHttp(requestUrl);
             request.Headers.Add("Authorization", $"Bearer {accessToken}");
             request.ContentType = "application/json";
@@ -148,12 +148,14 @@ namespace Ext_Dynamics_API.Canvas
             string requestUrl = $"/api/v1/courses/{courseId}/custom_gradebook_columns";
             var webRequest = new HttpRequestMessage(new HttpMethod("POST"), requestUrl);
             webRequest.Headers.Add("Authorization", $"Bearer {accessToken}");
-            var formContent = new MultipartFormDataContent();
-            formContent.Add(new StringContent(request.Title), "column[title]");
-            formContent.Add(new StringContent($"{request.Position}"), "column[position]");
-            formContent.Add(new StringContent($"{request.Hidden}"), "column[hidden]");
-            formContent.Add(new StringContent($"{request.TeacherNotes}"), "column[teacher_notes]");
-            formContent.Add(new StringContent($"{request.ReadOnly}"), "column[read_only]");
+            var formContent = new MultipartFormDataContent
+            {
+                { new StringContent(request.Title), "column[title]" },
+                { new StringContent($"{request.Position}"), "column[position]" },
+                { new StringContent($"{request.Hidden}"), "column[hidden]" },
+                { new StringContent($"{request.TeacherNotes}"), "column[teacher_notes]" },
+                { new StringContent($"{request.ReadOnly}"), "column[read_only]" }
+            };
             webRequest.Content = formContent;
             var response = _httpClient.Send(webRequest);
             CustomColumn column;
@@ -172,7 +174,7 @@ namespace Ext_Dynamics_API.Canvas
 
         public void DeleteCustomColumn(string accessToken, int courseId, int colId)
         {
-            string requestUrl = $"{_config.canvasBaseUrl}/api/v1/courses/{courseId}/custom_gradebook_columns/{colId}";
+            string requestUrl = $"{_config.canvasBaseUrl}/courses/{courseId}/custom_gradebook_columns/{colId}";
             var request = WebRequest.Create(requestUrl);
             request.Headers.Add("Authorization", $"Bearer {accessToken}");
             request.Method = "DELETE";
