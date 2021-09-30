@@ -31,10 +31,14 @@ namespace Ext_Dynamics_API.Controllers
             _scryptHasher = new ScryptEncoder();
         }
 
+        /// <summary>
+        /// Gets the profile of a particular user
+        /// </summary>
+        /// <returns>UserProfile: The profile of the user</returns>
         [HttpGet]
         [Authorize]
         [Route("ViewUserProfile")]
-        public ActionResult ViewUserProfile()
+        public IActionResult ViewUserProfile()
         {
             var encodedToken = _tokenManager.ReadAndValidateToken(Request.Headers[_config.authHeader]);
             var handler = new JwtSecurityTokenHandler();
@@ -78,9 +82,14 @@ namespace Ext_Dynamics_API.Controllers
 
         }
 
+        /// <summary>
+        /// Registers a new user into the system
+        /// </summary>
+        /// <param name="userAccount">The new account user to add</param>
+        /// <returns>String: A response message indicating the result of the attempted operation</returns>
         [HttpPost]
         [Route("RegisterUser")]
-        public ActionResult RegisterUser([FromBody] ApplicationUserAccount userAccount)
+        public IActionResult RegisterUser([FromBody] ApplicationUserAccount userAccount)
         {
 
             // App user name must be at least 3 characters long and must be alphanumeric
@@ -144,10 +153,14 @@ namespace Ext_Dynamics_API.Controllers
             return new OkObjectResult($"Successfully Registered new User: {userAccount.AppUserName}");
         }
 
+        /// <summary>
+        /// Deletes a user account from the system
+        /// </summary>
+        /// <returns>String: A response message indicating the result of the attempted operation</returns>
         [HttpDelete]
         [Route("DeleteUser")]
         [Authorize]
-        public ActionResult DeleteUser()
+        public IActionResult DeleteUser()
         {
             var encodedToken = _tokenManager.ReadAndValidateToken(Request.Headers[_config.authHeader]);
             var handler = new JwtSecurityTokenHandler();
@@ -189,10 +202,15 @@ namespace Ext_Dynamics_API.Controllers
             return new UnauthorizedObjectResult("User Token Is Not Valid");
         }
 
+        /// <summary>
+        /// Allows an admin to delete a user by id
+        /// </summary>
+        /// <param name="userId">The id of the user to delete</param>
+        /// <returns>String: A response message indicating the result of the attempted operation</returns>
         [HttpDelete]
         [Route("DeleteUser/{id}")]
         [Authorize]
-        public ActionResult DeleteUserById([FromRoute] int userId)
+        public IActionResult DeleteUserById([FromRoute] int userId)
         {
             var encodedToken = _tokenManager.ReadAndValidateToken(Request.Headers[_config.authHeader]);
             var handler = new JwtSecurityTokenHandler();

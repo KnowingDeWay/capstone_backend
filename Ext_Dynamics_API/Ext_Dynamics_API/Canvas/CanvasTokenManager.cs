@@ -17,6 +17,11 @@ namespace Ext_Dynamics_API.Canvas
             _dbCtx = dbCtx;
         }
 
+        /// <summary>
+        /// Updates the details of a Canvas PAT
+        /// </summary>
+        /// <param name="personalAccessToken">The PAT to update</param>
+        /// <returns>Boolean: Whether or not the update operation was successful</returns>
         public bool UpdateCanvasPat(CanvasPersonalAccessToken personalAccessToken)
         {
             var token = _dbCtx.PersonalAccessTokens.Where(x => x.Id == personalAccessToken.Id).FirstOrDefault();
@@ -74,6 +79,12 @@ namespace Ext_Dynamics_API.Canvas
             }
         }
 
+        /// <summary>
+        /// Activates a specific PAT to be used with Canvas for a particular user
+        /// </summary>
+        /// <param name="patId">The id of the PAT</param>
+        /// <param name="userId">The id of the user</param>
+        /// <returns></returns>
         public bool ActivateToken(int patId, int userId)
         {
             var pat = _dbCtx.PersonalAccessTokens.Where(x => x.Id == patId).FirstOrDefault();
@@ -125,6 +136,11 @@ namespace Ext_Dynamics_API.Canvas
             }
         }
 
+        /// <summary>
+        /// Gets the active PAT for a user
+        /// </summary>
+        /// <param name="userId">The id of the user</param>
+        /// <returns>String: The API Key of the PAT</returns>
         public string GetActiveAccessToken(int userId)
         {
             var activeToken = _dbCtx.PersonalAccessTokens.Where(x => x.AppUserId == userId && x.TokenActive).FirstOrDefault();

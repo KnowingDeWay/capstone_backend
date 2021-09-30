@@ -31,6 +31,11 @@ namespace Ext_Dynamics_API.Canvas
             _httpClient.BaseAddress = new Uri(_config.canvasBaseUrl);
         }
 
+        /// <summary>
+        /// Gets all the courses that the user is an instructor in
+        /// </summary>
+        /// <param name="accessToken">The API key to use to access Canvas</param>
+        /// <returns>List&lt;Course>: The courses for which the user is an instructor in</returns>
         public List<Course> GetInstructorCourses(string accessToken)
         {
             string requestUrl = $"{_config.canvasBaseUrl}/courses?enrollment_type=teacher";
@@ -44,6 +49,12 @@ namespace Ext_Dynamics_API.Canvas
             return courses;
         }
 
+        /// <summary>
+        /// Gets all the assignments for a specified course
+        /// </summary>
+        /// <param name="accessToken">The API key to use to access Canvas</param>
+        /// <param name="courseId">The id of the course</param>
+        /// <returns>List&lt;Assignment>: The assignment details for each assignment in the course</returns>
         public List<Assignment> GetCourseAssignments(string accessToken, int courseId)
         {
             string requestUrl = $"{_config.canvasBaseUrl}/courses/{courseId}/assignments";
@@ -57,6 +68,13 @@ namespace Ext_Dynamics_API.Canvas
             return assignments;
         }
 
+        /// <summary>
+        /// Gets all the users in a course that are of a speific user type (e.g. Student, Teacher etc)
+        /// </summary>
+        /// <param name="accessToken">The API key to use to access Canvas</param>
+        /// <param name="courseId">The id of the course</param>
+        /// <param name="enrollmentType">The type of users to search for</param>
+        /// <returns>List&lt;User>: The information of the Canvas users</returns>
         public List<User> GetUsersInCourse(string accessToken, int courseId, EnrollmentParamType enrollmentType)
         {
             string requestUrl = $"{_config.canvasBaseUrl}/courses/{courseId}/users?enrollment_type={enrollmentType}";
@@ -70,6 +88,14 @@ namespace Ext_Dynamics_API.Canvas
             return users;
         }
 
+        /// <summary>
+        /// Gets a detailed breakdown of all the assignments and key statistics that describe the performance of a student,
+        /// including assignment scores
+        /// </summary>
+        /// <param name="accessToken">The API key to use to access Canvas</param>
+        /// <param name="courseId">The id of the course</param>
+        /// <param name="studentId">The id of the student in Canvas</param>
+        /// <returns>List&lt;UserCourseLevelAnalysis>: List of each statistical breakdown for each assignment</returns>
         public List<UserCourseLevelAnalysis> GetAnalysisData(string accessToken, int courseId, int studentId)
         {
             string requestUrl = $"{_config.canvasBaseUrl}/courses/{courseId}/analytics/users/{studentId}/assignments";
@@ -83,6 +109,12 @@ namespace Ext_Dynamics_API.Canvas
             return data;
         }
 
+        /// <summary>
+        /// Gets all the custom columns for a Canvas Gradebook for the specifed course
+        /// </summary>
+        /// <param name="accessToken">The API key to use to access Canvas</param>
+        /// <param name="courseId">The id of the course</param>
+        /// <returns>List&lt;CustomColumn>: List of custom columns relating to the course Gradebook for Canvas</returns>
         public List<CustomColumn> GetCustomColumns(string accessToken, int courseId)
         {
             string requestUrl = $"{_config.canvasBaseUrl}/courses/{courseId}/custom_gradebook_columns";
@@ -96,6 +128,13 @@ namespace Ext_Dynamics_API.Canvas
             return data;
         }
 
+        /// <summary>
+        /// Gets all the row data for a particular custom column
+        /// </summary>
+        /// <param name="accessToken">The API key to use to access Canvas</param>
+        /// <param name="courseId">The id of the course</param>
+        /// <param name="colId">The id of the custom column</param>
+        /// <returns>List&lt;ColumnDatum>: The row data for the specified custom column</returns>
         public List<ColumnDatum> GetCustomColumnEntries(string accessToken, int courseId, int colId)
         {
             string requestUrl = $"{_config.canvasBaseUrl}/courses/{courseId}/custom_gradebook_columns/{colId}/data";
@@ -109,6 +148,13 @@ namespace Ext_Dynamics_API.Canvas
             return data;
         }
 
+        /// <summary>
+        /// Bulk updates the grades for an assignment column
+        /// </summary>
+        /// <param name="accessToken">The API key to use to access Canvas</param>
+        /// <param name="courseId">The id of the course</param>
+        /// <param name="assignmentId">The id of the assignment</param>
+        /// <param name="entries">The list of entries detailing the new grade of each student</param>
         public void SetAssignmentColumnEntries(string accessToken, int courseId, int assignmentId, 
             List<AssignmentGradeChangeEntry> entries)
         {
@@ -128,6 +174,12 @@ namespace Ext_Dynamics_API.Canvas
             response.Dispose();
         }
 
+        /// <summary>
+        /// Sets all the entries for a custom column on Canvas
+        /// </summary>
+        /// <param name="accessToken">The API key to use to access Canvas</param>
+        /// <param name="courseId">The id of the course</param>
+        /// <param name="updateRequest">A request that contains the rows to update in the custom column</param>
         public void SetCustomColumnEntries(string accessToken, int courseId, CustomColumnsUpdateRequest updateRequest)
         {
             string requestUrl = $"{_config.canvasBaseUrl}/courses/{courseId}/custom_gradebook_column_data";
@@ -143,6 +195,13 @@ namespace Ext_Dynamics_API.Canvas
             request.GetResponse();
         }
 
+        /// <summary>
+        /// Pushes and creates a new Custom Column on Canvas
+        /// </summary>
+        /// <param name="accessToken">The API key to use to access Canvas</param>
+        /// <param name="request">The request containing all the information in regards to the structure of the column</param>
+        /// <param name="courseId">The id of the course</param>
+        /// <returns>CustomColumn: The column that was added to Canvas</returns>
         public CustomColumn AddNewCustomColumn(string accessToken, CustomColumnCreationRequest request, int courseId)
         {
             string requestUrl = $"/api/v1/courses/{courseId}/custom_gradebook_columns";
@@ -172,17 +231,35 @@ namespace Ext_Dynamics_API.Canvas
             return column;
         }
 
-        public void DeleteCustomColumn(string accessToken, int courseId, int colId)
+        /// <summary>
+        /// Deletes a custom column from Canvas
+        /// </summary>
+        /// <param name="accessToken">The API Key to access the Canvas API</param>
+        /// <param name="courseId">The id of the course</param>
+        /// <param name="colId">The id of the custom column on Canvas</param>
+        /// <returns>CustomColumn: Details of the column that was deleted</returns>
+        public CustomColumn DeleteCustomColumn(string accessToken, int courseId, int colId)
         {
             string requestUrl = $"{_config.canvasBaseUrl}/courses/{courseId}/custom_gradebook_columns/{colId}";
             var request = WebRequest.Create(requestUrl);
             request.Headers.Add("Authorization", $"Bearer {accessToken}");
             request.Method = "DELETE";
             var response = (HttpWebResponse)request.GetResponse();
+            CustomColumn column;
+            using (var streamReader = new StreamReader(response.GetResponseStream()))
+            {
+                string columnJson = streamReader.ReadToEnd();
+                column = JsonConvert.DeserializeObject<CustomColumn>(columnJson);
+            }
+            return column;
         }
 
+        /// <summary>
+        /// Disposes this class and the resources it utilizes
+        /// </summary>
         public void Dispose()
         {
+            GC.SuppressFinalize(this); // Prevents derived types from having to call this method again
             ((IDisposable)_httpClient).Dispose();
         }
     }

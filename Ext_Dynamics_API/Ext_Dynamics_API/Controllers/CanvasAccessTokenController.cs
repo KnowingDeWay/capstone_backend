@@ -33,10 +33,14 @@ namespace Ext_Dynamics_API.Controllers
             _canvasTokenManager = new CanvasTokenManager(_dbCtx);
         }
 
+        /// <summary>
+        /// Gets all Canvas Access Tokens pertaining to a user
+        /// </summary>
+        /// <returns>ListResponse&lt;CanvasPersonalAccessToken>: Returns the list of Canvas PATs with a feedback message</returns>
         [HttpGet]
         [Authorize]
         [Route("GetUserAccessTokens")]
-        public ActionResult GetUserAccessTokens()
+        public IActionResult GetUserAccessTokens()
         {
             var encodedToken = _tokenManager.ReadAndValidateToken(Request.Headers[_config.authHeader]);
             var handler = new JwtSecurityTokenHandler();
@@ -72,10 +76,18 @@ namespace Ext_Dynamics_API.Controllers
 
         }
 
+        /// <summary>
+        /// Gets information on a specific Canvas PAT based on an id
+        /// </summary>
+        /// <param name="patId">The id of the PAT</param>
+        /// <returns>
+        /// ObjectResponse&lt;CanvasPersonalAccessToken>: The Canvas PAT along with feedback detailing the result of the
+        /// attempted operation
+        /// </returns>
         [HttpGet]
         [Authorize]
         [Route("GetUserAccessTokenById/{id}")]
-        public ActionResult GetUserAccessTokenById([FromRoute] int patId)
+        public IActionResult GetUserAccessTokenById([FromRoute] int patId)
         {
             var encodedToken = _tokenManager.ReadAndValidateToken(Request.Headers[_config.authHeader]);
             var handler = new JwtSecurityTokenHandler();
@@ -120,10 +132,15 @@ namespace Ext_Dynamics_API.Controllers
             return new OkObjectResult(objResponse);
         }
 
+        /// <summary>
+        /// Adds a new Canvas PAT to the system
+        /// </summary>
+        /// <param name="canvasToken">Information detaling the new PAT</param>
+        /// <returns>String: The result of the attempted operation</returns>
         [HttpPost]
         [Authorize]
         [Route("AddCanvasToken")]
-        public ActionResult AddCanvasToken([FromBody] CanvasToken canvasToken)
+        public IActionResult AddCanvasToken([FromBody] CanvasToken canvasToken)
         {
             var encodedToken = _tokenManager.ReadAndValidateToken(Request.Headers[_config.authHeader]);
             var handler = new JwtSecurityTokenHandler();
@@ -168,10 +185,15 @@ namespace Ext_Dynamics_API.Controllers
             }
         }
 
+        /// <summary>
+        /// Updates information pertaining to a specific Canvas PAT
+        /// </summary>
+        /// <param name="canvasToken">The updated details of the Canvas PAT</param>
+        /// <returns>String: The result of the attempted operation</returns>
         [HttpPut]
         [Authorize]
         [Route("EditAccessToken")]
-        public ActionResult EditAccessToken([FromBody] CanvasPersonalAccessToken canvasToken)
+        public IActionResult EditAccessToken([FromBody] CanvasPersonalAccessToken canvasToken)
         {
             var encodedToken = _tokenManager.ReadAndValidateToken(Request.Headers[_config.authHeader]);
             var handler = new JwtSecurityTokenHandler();
@@ -205,10 +227,15 @@ namespace Ext_Dynamics_API.Controllers
             }
         }
 
+        /// <summary>
+        /// Deletes a specific Canvas PAT for a user
+        /// </summary>
+        /// <param name="patId">The id of the PAT to delete</param>
+        /// <returns>String: The result of the attempted operation</returns>
         [HttpDelete]
         [Authorize]
         [Route("DeleteAccessToken/{patId}")]
-        public ActionResult DeleteAccessToken([FromRoute] int patId)
+        public IActionResult DeleteAccessToken([FromRoute] int patId)
         {
             var encodedToken = _tokenManager.ReadAndValidateToken(Request.Headers[_config.authHeader]);
             var handler = new JwtSecurityTokenHandler();
@@ -253,10 +280,16 @@ namespace Ext_Dynamics_API.Controllers
             }
         }
 
+        /// <summary>
+        /// Activates a specific Canvas PAT for a user; this PAT will be used for all interactions between the system and Canvas for
+        /// this particular user
+        /// </summary>
+        /// <param name="patId">The id of the PAT to activate</param>
+        /// <returns>String: The result of the attempted operation</returns>
         [HttpPost]
         [Authorize]
         [Route("ActivateAccessToken/{patId}")]
-        public ActionResult ActivateAccessToken([FromRoute] int patId)
+        public IActionResult ActivateAccessToken([FromRoute] int patId)
         {
             var encodedToken = _tokenManager.ReadAndValidateToken(Request.Headers[_config.authHeader]);
             var handler = new JwtSecurityTokenHandler();

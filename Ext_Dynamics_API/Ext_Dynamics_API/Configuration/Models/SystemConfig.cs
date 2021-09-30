@@ -30,6 +30,10 @@ namespace Ext_Dynamics_API.Configuration.Models
         [JsonProperty(PropertyName = "canvas_base_url")]
         public readonly string canvasBaseUrl;
 
+        /// <summary>
+        /// Loads the configuration settings from the "main_config.json" file in the build directory under Configuration/Models
+        /// </summary>
+        /// <returns>SystemConfig: The runtime System Configuration of the application</returns>
         public static SystemConfig LoadConfig()
         {
             var currPath = Environment.CurrentDirectory;

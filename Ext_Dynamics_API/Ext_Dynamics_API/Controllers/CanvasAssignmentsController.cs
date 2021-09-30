@@ -35,6 +35,14 @@ namespace Ext_Dynamics_API.Controllers
             _canvasDataAccess = new CanvasDataAccess(_config);
         }
 
+        /// <summary>
+        /// Gets all the assignments pertaining to the course
+        /// </summary>
+        /// <param name="courseId">The id of the course</param>
+        /// <returns>
+        /// ListResponse&lt;Assignment>: The list of assignments pertaining to the course and the result of this 
+        /// operation
+        /// </returns>
         [HttpGet]
         [Route("GetCourseAssignments/{courseId}")]
         public IActionResult GetCourseAssignments([FromRoute] int courseId)

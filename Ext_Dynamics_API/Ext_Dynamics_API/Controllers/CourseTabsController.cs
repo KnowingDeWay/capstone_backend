@@ -39,6 +39,11 @@ namespace Ext_Dynamics_API.Controllers
             _tableManager = new CourseDataTableManager(_dbCtx);
         }
 
+        /// <summary>
+        /// Gets the Canvas Gradebook and re-represents this data in our system
+        /// </summary>
+        /// <param name="courseId">The id of the course</param>
+        /// <returns>ObjectResponse&lt;CourseDataTable>: The Canvas Gradebook for the course</returns>
         [HttpGet]
         [Route("GetCourseDataTable/{courseId}")]
         public IActionResult GetCourseDataTable([FromRoute] int courseId)
@@ -75,6 +80,11 @@ namespace Ext_Dynamics_API.Controllers
             return Ok(objResponse);
         }
 
+        /// <summary>
+        /// Updates the values in the Canvas Gradebook
+        /// </summary>
+        /// <param name="editedTable">The table with the edited values</param>
+        /// <returns>String: A response message indicating the result of the attempted operation</returns>
         [HttpPut]
         [Route("UpdateCourseTable")]
         public IActionResult UpdateCourseTable([FromBody] dynamic editedTable)
@@ -115,6 +125,12 @@ namespace Ext_Dynamics_API.Controllers
             }
         }
 
+        /// <summary>
+        /// Adds a new custom column to the Canvas Gradebook
+        /// </summary>
+        /// <param name="courseId">The id of the course</param>
+        /// <param name="newColRequest">The request suppling all the relevant information to create a new custom column</param>
+        /// <returns>String: A response message indicating the result of the attempted operation</returns>
         [HttpPost]
         [Route("AddNewTableColumn/{courseId}")]
         public IActionResult AddNewTableColumn([FromRoute] int courseId, [FromBody] NewColumnRequest newColRequest)
@@ -190,6 +206,12 @@ namespace Ext_Dynamics_API.Controllers
             }
         }
 
+        /// <summary>
+        /// Deletes a custom column from the Canvas Gradebook
+        /// </summary>
+        /// <param name="courseId">The id of the course</param>
+        /// <param name="relatedDataId">The id of the custom column in the Canvas Gradebook for this course</param>
+        /// <returns>String: A response message indicating the result of the attempted operation</returns>
         [HttpDelete]
         [Route("DeleteCustomColumn/{courseId}/{relatedDataId}")]
         public IActionResult DeleteCustomColumn([FromRoute] int courseId, [FromRoute] int relatedDataId)

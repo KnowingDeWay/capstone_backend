@@ -35,6 +35,10 @@ namespace Ext_Dynamics_API.Controllers
             _canvasDataAccess = new CanvasDataAccess(_config);
         }
 
+        /// <summary>
+        /// Gets all the courses that the user is considered an instructor in
+        /// </summary>
+        /// <returns>ListResponse%lt;Course>: The list of courses with the result of the attempted operation</returns>
         [HttpGet]
         [Route("GetInstructorCourses")]
         public IActionResult GetInstructorCourses()

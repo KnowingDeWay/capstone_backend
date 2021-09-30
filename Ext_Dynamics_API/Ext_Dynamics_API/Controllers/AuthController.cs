@@ -33,9 +33,14 @@ namespace Ext_Dynamics_API.Controllers
             _scryptHasher = new ScryptEncoder();
         }
 
+        /// <summary>
+        /// Authenticates a user and issues a JWT token in encoded format to the user
+        /// </summary>
+        /// <param name="credentials">The login credentials</param>
+        /// <returns>AuthResponse: Details the result of the authentication attempt and issues a JWT token if successful</returns>
         [HttpPost]
         [Route("LoginUser")]
-        public ActionResult LoginUser([FromBody] LoginCredentials credentials)
+        public IActionResult LoginUser([FromBody] LoginCredentials credentials)
         {
             var user = _dbCtx.UserAccounts.Where(x => x.AppUserName.Equals(credentials.Username)).FirstOrDefault();
             var response = new AuthResponse();
@@ -61,10 +66,14 @@ namespace Ext_Dynamics_API.Controllers
 
         }
 
+        /// <summary>
+        /// Logs out the user, deleting and invalidating all user tokens related to that user
+        /// </summary>
+        /// <returns>AuthResponse: Details the result of the logout attempt</returns>
         [Authorize]
         [HttpPost]
         [Route("LogoutUser")]
-        public ActionResult LogoutUser()
+        public IActionResult LogoutUser()
         {
             var encodedToken = _tokenManager.ReadAndValidateToken(Request.Headers[_config.authHeader]);
             var handler = new JwtSecurityTokenHandler();
@@ -100,9 +109,13 @@ namespace Ext_Dynamics_API.Controllers
             });
         }
 
+        /// <summary>
+        /// Performs a Validation check on a supplied JWT in encoded format
+        /// </summary>
+        /// <returns>Boolean: Whether or not the token is valid</returns>
         [HttpGet]
         [Route("ValidateToken")]
-        public ActionResult ValidateToken()
+        public IActionResult ValidateToken()
         {
             var encodedToken = _tokenManager.ReadAndValidateToken(Request.Headers[_config.authHeader]);
             return new OkObjectResult(!string.IsNullOrWhiteSpace(encodedToken));
