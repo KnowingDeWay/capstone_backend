@@ -214,6 +214,28 @@ namespace Ext_Dynamics_API.ResourceManagement
         }
 
         /// <summary>
+        /// Updates the custom column in the database and pushes any appropriate changes (such as column name) to Canvas
+        /// </summary>
+        /// <param name="accessToken">The API Key used to access Canvas APIs</param>
+        /// <param name="column">The updated details for a column</param>
+        /// <param name="courseId">The id of the course</param>
+        /// <param name="userId">The id of the user in the system</param>
+        /// <param name="table">The table to add the custom column</param>
+        /// <param name="csvFileContent">The content of the uploaded csv file as a string (if applicable)</param>
+        /// <returns>bool: Whether or not the update operation was successful</returns>
+        public bool EditCustomColumn(string accessToken, CourseDataColumn column, int courseId, int userId, 
+            CourseDataTable table, string csvFileContent)
+        {
+            return column.ColumnType switch
+            {
+                ColumnType.Custom_Canvas_Column => EditToCustomColumn(accessToken, column, courseId, userId),
+                ColumnType.File_Import => EditToFileColumn(accessToken, column, courseId, userId, csvFileContent),
+                ColumnType.Derived_Data => EditToDerivedColumn(accessToken, column, courseId, userId, table),
+                _ => false,
+            };
+        }
+
+        /// <summary>
         /// Deletes a custom column in the Canvas Gradebook for a specified course
         /// </summary>
         /// <param name="accessToken">The access token of a particular user</param>
@@ -452,6 +474,259 @@ namespace Ext_Dynamics_API.ResourceManagement
             return true;
         }
 
+        private bool EditToCustomColumn(string accessToken, CourseDataColumn column, int courseId, int userId)
+        {
+            var request = new CustomColumnCreationRequest
+            {
+                Title = column.Name,
+                Hidden = false,
+                TeacherNotes = false,
+                ReadOnly = false
+            };
+
+            CustomColumn updatedCol;
+
+            try
+            {
+                updatedCol = _canvasDataAccess.EditCustomColumn(accessToken, request, courseId, column.RelatedDataId);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+
+            var entryToUpdate = _dbCtx.CustomDataColumns.Where(x => x.RelatedDataId == column.RelatedDataId).FirstOrDefault();
+
+            if(entryToUpdate != null)
+            {
+                entryToUpdate.Name = column.Name;
+                entryToUpdate.CalcRule = column.CalcRule;
+                entryToUpdate.ColMaxValue = column.ColMaxValue;
+                entryToUpdate.ColMinValue = column.ColMinValue;
+                entryToUpdate.ColumnType = column.ColumnType;
+                entryToUpdate.DataType = column.DataType;
+
+                var success = SaveColumnEntriesChangesConcurently(entryToUpdate);
+
+                return true;
+            }
+            else
+            {
+                var newEntry = new DataColumnEntry
+                {
+                    Name = column.Name,
+                    CourseId = courseId,
+                    CalcRule = column.CalcRule,
+                    ColMaxValue = column.ColMaxValue,
+                    ColMinValue = column.ColMinValue,
+                    DataType = column.DataType,
+                    RelatedDataId = updatedCol.Id,
+                    UserId = userId,
+                    ColumnType = column.ColumnType,
+                };
+
+                _dbCtx.CustomDataColumns.Add(newEntry);
+
+                var success = SaveColumnEntriesChangesConcurently(newEntry);
+
+                return success;
+            }
+        }
+
+        private bool EditToDerivedColumn(string accessToken, CourseDataColumn column, int courseId, int userId, CourseDataTable table)
+        {
+            var request = new CustomColumnCreationRequest
+            {
+                Title = column.Name,
+                Hidden = false,
+                TeacherNotes = false,
+                ReadOnly = false
+            };
+
+            CustomColumn updatedCol;
+
+            try
+            {
+                updatedCol = _canvasDataAccess.EditCustomColumn(accessToken, request, courseId, column.RelatedDataId);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+
+            var entryToUpdate = _dbCtx.CustomDataColumns.Where(x => x.RelatedDataId == column.RelatedDataId).FirstOrDefault();
+
+            if (entryToUpdate != null)
+            {
+                entryToUpdate.Name = column.Name;
+                entryToUpdate.CalcRule = column.CalcRule;
+                entryToUpdate.ColMaxValue = column.ColMaxValue;
+                entryToUpdate.ColMinValue = column.ColMinValue;
+                entryToUpdate.ColumnType = column.ColumnType;
+                entryToUpdate.DataType = column.DataType;
+
+                var success = SaveColumnEntriesChangesConcurently(entryToUpdate);
+
+                if(!success)
+                {
+                    return false;
+                }
+
+                return true;
+            }
+            else
+            {
+                var newEntry = new DataColumnEntry
+                {
+                    Name = column.Name,
+                    CourseId = courseId,
+                    CalcRule = column.CalcRule,
+                    ColMaxValue = column.ColMaxValue,
+                    ColMinValue = column.ColMinValue,
+                    DataType = column.DataType,
+                    RelatedDataId = updatedCol.Id,
+                    UserId = userId,
+                    ColumnType = column.ColumnType,
+                };
+
+                _dbCtx.CustomDataColumns.Add(newEntry);
+
+                var success = SaveColumnEntriesChangesConcurently(newEntry);
+
+                if(!success)
+                {
+                    return false;
+                }
+            }
+
+            // Be mindful that Derived Data Columns MUST be numeric (double datatype)
+            var numCol = (NumericDataColumn)column;
+
+            var derivedColManager = new DerivedColumnManager(table);
+            derivedColManager.LoadDerivedDataColumn(ref numCol);
+
+            var custColsRequest = new CustomColumnsUpdateRequest
+            {
+                ColumnData = new List<CustomColumnDataEntry>()
+            };
+
+            foreach (var row in numCol.Rows)
+            {
+                custColsRequest.ColumnData.Add(new CustomColumnDataEntry
+                {
+                    ColumnId = updatedCol.Id,
+                    Content = $"{row.Value}",
+                    UserId = row.AssociatedUser.Id
+                });
+            }
+
+            try
+            {
+                _canvasDataAccess.SetCustomColumnEntries(accessToken, courseId, custColsRequest);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private bool EditToFileColumn(string accessToken, CourseDataColumn column, int courseId, int userId, string csvFileContent)
+        {
+            var request = new CustomColumnCreationRequest
+            {
+                Title = column.Name,
+                Hidden = false,
+                TeacherNotes = false,
+                ReadOnly = false
+            };
+
+            CustomColumn updatedCol;
+
+            try
+            {
+                updatedCol = _canvasDataAccess.EditCustomColumn(accessToken, request, courseId, column.RelatedDataId);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+
+            var entryToUpdate = _dbCtx.CustomDataColumns.Where(x => x.RelatedDataId == column.RelatedDataId).FirstOrDefault();
+
+            if (entryToUpdate != null)
+            {
+                entryToUpdate.Name = column.Name;
+                entryToUpdate.CalcRule = column.CalcRule;
+                entryToUpdate.ColMaxValue = column.ColMaxValue;
+                entryToUpdate.ColMinValue = column.ColMinValue;
+                entryToUpdate.ColumnType = column.ColumnType;
+                entryToUpdate.DataType = column.DataType;
+
+                var success = SaveColumnEntriesChangesConcurently(entryToUpdate);
+
+                if (!success)
+                {
+                    return false;
+                }
+
+                return true;
+            }
+            else
+            {
+                var newEntry = new DataColumnEntry
+                {
+                    Name = column.Name,
+                    CourseId = courseId,
+                    CalcRule = column.CalcRule,
+                    ColMaxValue = column.ColMaxValue,
+                    ColMinValue = column.ColMinValue,
+                    DataType = column.DataType,
+                    RelatedDataId = updatedCol.Id,
+                    UserId = userId,
+                    ColumnType = column.ColumnType,
+                };
+
+                _dbCtx.CustomDataColumns.Add(newEntry);
+
+                var success = SaveColumnEntriesChangesConcurently(newEntry);
+
+                if (!success)
+                {
+                    return false;
+                }
+            }
+
+            CustomColumnsUpdateRequest updateRequest;
+
+            try
+            {
+                var stringReader = new CsvStringReader();
+                updateRequest = stringReader.CreateCanvasColumnRequestFromCsvString(csvFileContent, Students, updatedCol.Id);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+
+            try
+            {
+                _canvasDataAccess.SetCustomColumnEntries(accessToken, courseId, updateRequest);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Saves changes to the database in a concurrently safe way using Optimistic thread conflict resolution
+        /// </summary>
+        /// <param name="newEntry">The new entry to add or the updated column entry</param>
+        /// <returns>bool: The result of the database save operation</returns>
         private bool SaveColumnEntriesChangesConcurently(DataColumnEntry newEntry) 
         {
             try

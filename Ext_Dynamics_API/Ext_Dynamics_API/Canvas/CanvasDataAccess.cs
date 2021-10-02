@@ -212,8 +212,43 @@ namespace Ext_Dynamics_API.Canvas
                 { new StringContent(request.Title), "column[title]" },
                 { new StringContent($"{request.Position}"), "column[position]" },
                 { new StringContent($"{request.Hidden}"), "column[hidden]" },
-                { new StringContent($"{request.TeacherNotes}"), "column[teacher_notes]" },
                 { new StringContent($"{request.ReadOnly}"), "column[read_only]" }
+            };
+            webRequest.Content = formContent;
+            var response = _httpClient.Send(webRequest);
+            CustomColumn column;
+            using (var streamReader = new StreamReader(response.Content.ReadAsStream()))
+            {
+                string columnJson = streamReader.ReadToEnd();
+                column = JsonConvert.DeserializeObject<CustomColumn>(columnJson);
+            }
+
+            // Clean up
+            webRequest.Dispose();
+            response.Dispose();
+
+            return column;
+        }
+
+        /// <summary>
+        /// Updates the custom column on Canvas
+        /// </summary>
+        /// <param name="accessToken">The API Key to use with Canvas APIs</param>
+        /// <param name="updateRequest">The request containing the updated details of the column</param>
+        /// <param name="courseId">The id of the course</param>
+        /// <param name="colId">The id of the column to update</param>
+        /// <returns>CustomColumn: The details of the updated column on Canvas</returns>
+        public CustomColumn EditCustomColumn(string accessToken, CustomColumnCreationRequest updateRequest, int courseId, int colId)
+        {
+            string requestUrl = $"/api/v1/courses/{courseId}/custom_gradebook_columns/{colId}";
+            var webRequest = new HttpRequestMessage(new HttpMethod("PUT"), requestUrl);
+            webRequest.Headers.Add("Authorization", $"Bearer {accessToken}");
+            var formContent = new MultipartFormDataContent
+            {
+                { new StringContent(updateRequest.Title), "column[title]" },
+                { new StringContent($"{updateRequest.Position}"), "column[position]" },
+                { new StringContent($"{updateRequest.Hidden}"), "column[hidden]" },
+                { new StringContent($"{updateRequest.ReadOnly}"), "column[read_only]" }
             };
             webRequest.Content = formContent;
             var response = _httpClient.Send(webRequest);

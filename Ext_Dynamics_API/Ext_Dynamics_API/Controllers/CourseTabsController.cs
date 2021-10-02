@@ -207,6 +207,81 @@ namespace Ext_Dynamics_API.Controllers
         }
 
         /// <summary>
+        /// Updates the details of a custom column in the database
+        /// </summary>
+        /// <param name="courseId">The id of the course</param>
+        /// <param name="newColRequest">The updated details of the column</param>
+        /// <returns>String: The result of the operation</returns>
+        [HttpPut]
+        [Route("EditCustomColumn/{courseId}")]
+        public IActionResult EditCustomColumn([FromRoute] int courseId, [FromBody] NewColumnRequest newColRequest)
+        {
+            var userToken = _tokenManager.ReadAndValidateToken(Request.Headers[_config.authHeader]);
+
+            JwtSecurityToken decodedToken;
+            var handler = new JwtSecurityTokenHandler();
+            try
+            {
+                decodedToken = handler.ReadJwtToken(userToken);
+            }
+            catch (ArgumentException)
+            {
+                return new UnauthorizedObjectResult("User Token Is Not Valid");
+            }
+
+            var sysUserId = _tokenManager.GetUserIdFromToken(decodedToken);
+
+            var canvasPat = _canvasTokenManager.GetActiveAccessToken(sysUserId);
+
+            if (canvasPat == null)
+            {
+                return new BadRequestObjectResult("No Canvas PAT Selected/Activated!");
+            }
+
+            var table = CourseDataTable.LoadDataTable(courseId, canvasPat, _dbCtx);
+
+            if (_tableManager.IsColumnExists(newColRequest.NewColumn.Name)) 
+            {
+                return new BadRequestObjectResult("A Column with this name already exists!");
+            }
+
+            // If the user does not want to set a min or max value then it's just best to make these numbers set
+            // to the mininum and maximum values that are programatically acceptable
+            if (newColRequest.NewColumn.ColMinValue == default)
+            {
+                newColRequest.NewColumn.ColMinValue = double.MinValue;
+            }
+
+            if (newColRequest.NewColumn.ColMaxValue == default)
+            {
+                newColRequest.NewColumn.ColMaxValue = double.MaxValue;
+            }
+
+            // Obviously, the maximum value of a column cannot be set to a number less than the mininum value of that column.
+            // This would normally be done on the front-end and it is but front-end validation is not realiable as it is suspectible
+            // to manipulation by users
+            if (newColRequest.NewColumn.ColMaxValue < newColRequest.NewColumn.ColMinValue)
+            {
+                return BadRequest("Maximum Column value must be greater to or equal to the Mininum column value!");
+            }
+
+            var newCol = newColRequest.NewColumn.ConvertToTypedColumn();
+
+            _tableManager.Students = table.Students;
+            var insertionSuccess = _tableManager.EditCustomColumn(canvasPat, newCol, courseId, sysUserId, table, 
+                newColRequest.CsvFileContent);
+
+            if (insertionSuccess)
+            {
+                return Ok("Successfully updated new Column");
+            }
+            else
+            {
+                return NotFound("An error occured while updating the custom column");
+            }
+        }
+
+        /// <summary>
         /// Deletes a custom column from the Canvas Gradebook
         /// </summary>
         /// <param name="courseId">The id of the course</param>
