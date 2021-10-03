@@ -240,7 +240,7 @@ namespace Ext_Dynamics_API.Controllers
 
             var table = CourseDataTable.LoadDataTable(courseId, canvasPat, _dbCtx);
 
-            if (_tableManager.IsColumnExists(newColRequest.NewColumn.Name)) 
+            if (_tableManager.IsColumnExists(newColRequest.NewColumn.Name, newColRequest.NewColumn.RelatedDataId)) 
             {
                 return new BadRequestObjectResult("A Column with this name already exists!");
             }

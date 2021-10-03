@@ -246,7 +246,6 @@ namespace Ext_Dynamics_API.Canvas
             var formContent = new MultipartFormDataContent
             {
                 { new StringContent(updateRequest.Title), "column[title]" },
-                { new StringContent($"{updateRequest.Position}"), "column[position]" },
                 { new StringContent($"{updateRequest.Hidden}"), "column[hidden]" },
                 { new StringContent($"{updateRequest.ReadOnly}"), "column[read_only]" }
             };

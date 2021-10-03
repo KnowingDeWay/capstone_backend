@@ -207,10 +207,14 @@ namespace Ext_Dynamics_API.ResourceManagement
         /// Determines whether or not a column with the specified name exists
         /// </summary>
         /// <param name="columnName">The name of the column</param>
+        /// <param name="updatedColId">
+        /// An optional parameter indicating the related id of a column to ignore if a match is made with it
+        /// </param>
         /// <returns>bool: Whether or not a column with this name exists</returns>
-        public bool IsColumnExists(string columnName)
+        public bool IsColumnExists(string columnName, int updatedColId = -1)
         {
-            return _dbCtx.CustomDataColumns.Where(x => x.Name.Equals(columnName)).FirstOrDefault() != null;
+            return _dbCtx.CustomDataColumns.Where(x => x.Name.Equals(columnName) && x.RelatedDataId != updatedColId)
+                .FirstOrDefault() != null;
         }
 
         /// <summary>
@@ -262,6 +266,56 @@ namespace Ext_Dynamics_API.ResourceManagement
                 return true;
             }
             else
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Resets the values in a custom column to their default values given the datatype of the column
+        /// </summary>
+        /// <param name="accessToken">The API Key to use with Canvas APIs</param>
+        /// <param name="courseId">The id of the course</param>
+        /// <param name="column">The column to reset</param>
+        /// <returns>bool: If the operation succeeded or not</returns>
+        public bool ResetCustomColumn(string accessToken, int courseId, CourseDataColumn column)
+        {
+            var request = new CustomColumnsUpdateRequest()
+            {
+                ColumnData = new List<CustomColumnDataEntry>()
+            };
+
+            if(column.DataType == ColumnDataType.Number)
+            {
+                foreach (var student in Students)
+                {
+                    request.ColumnData.Add(new CustomColumnDataEntry
+                    {
+                        ColumnId = column.RelatedDataId,
+                        UserId = student.Id,
+                        Content = "0"
+                    });
+                }
+            }
+            else
+            {
+                foreach (var student in Students)
+                {
+                    request.ColumnData.Add(new CustomColumnDataEntry
+                    {
+                        ColumnId = column.RelatedDataId,
+                        UserId = student.Id,
+                        Content = ""
+                    });
+                }
+            }
+
+            try
+            {
+                _canvasDataAccess.SetCustomColumnEntries(accessToken, courseId, request);
+                return true;
+            }
+            catch(Exception)
             {
                 return false;
             }
@@ -500,7 +554,7 @@ namespace Ext_Dynamics_API.ResourceManagement
             if(entryToUpdate != null)
             {
                 entryToUpdate.Name = column.Name;
-                entryToUpdate.CalcRule = column.CalcRule;
+                entryToUpdate.CalcRule = "";
                 entryToUpdate.ColMaxValue = column.ColMaxValue;
                 entryToUpdate.ColMinValue = column.ColMinValue;
                 entryToUpdate.ColumnType = column.ColumnType;
@@ -516,7 +570,7 @@ namespace Ext_Dynamics_API.ResourceManagement
                 {
                     Name = column.Name,
                     CourseId = courseId,
-                    CalcRule = column.CalcRule,
+                    CalcRule = "",
                     ColMaxValue = column.ColMaxValue,
                     ColMinValue = column.ColMinValue,
                     DataType = column.DataType,
@@ -571,8 +625,6 @@ namespace Ext_Dynamics_API.ResourceManagement
                 {
                     return false;
                 }
-
-                return true;
             }
             else
             {
@@ -597,6 +649,15 @@ namespace Ext_Dynamics_API.ResourceManagement
                 {
                     return false;
                 }
+            }
+
+            var resetResult = ResetCustomColumn(accessToken, courseId, column);
+
+            // If the values failed to reset, then there is no point in continuing, it is best not to have muddled values in the column
+            // from the old version to the new version
+            if (!resetResult)
+            {
+                return false;
             }
 
             // Be mindful that Derived Data Columns MUST be numeric (double datatype)
@@ -653,12 +714,18 @@ namespace Ext_Dynamics_API.ResourceManagement
                 return false;
             }
 
+            // If there is an error obtaining the updated column, cease this operation
+            if(updatedCol.Id == 0)
+            {
+                return false;
+            }
+
             var entryToUpdate = _dbCtx.CustomDataColumns.Where(x => x.RelatedDataId == column.RelatedDataId).FirstOrDefault();
 
             if (entryToUpdate != null)
             {
                 entryToUpdate.Name = column.Name;
-                entryToUpdate.CalcRule = column.CalcRule;
+                entryToUpdate.CalcRule = "";
                 entryToUpdate.ColMaxValue = column.ColMaxValue;
                 entryToUpdate.ColMinValue = column.ColMinValue;
                 entryToUpdate.ColumnType = column.ColumnType;
@@ -670,8 +737,6 @@ namespace Ext_Dynamics_API.ResourceManagement
                 {
                     return false;
                 }
-
-                return true;
             }
             else
             {
@@ -679,7 +744,7 @@ namespace Ext_Dynamics_API.ResourceManagement
                 {
                     Name = column.Name,
                     CourseId = courseId,
-                    CalcRule = column.CalcRule,
+                    CalcRule = "",
                     ColMaxValue = column.ColMaxValue,
                     ColMinValue = column.ColMinValue,
                     DataType = column.DataType,
@@ -696,6 +761,15 @@ namespace Ext_Dynamics_API.ResourceManagement
                 {
                     return false;
                 }
+            }
+
+            var resetResult = ResetCustomColumn(accessToken, courseId, column);
+
+            // If the values failed to reset, then there is no point in continuing, it is best not to have muddled values in the column
+            // from the old version to the new version
+            if (!resetResult)
+            {
+                return false;
             }
 
             CustomColumnsUpdateRequest updateRequest;
