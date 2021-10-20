@@ -1,10 +1,6 @@
 ﻿using Ext_Dynamics_API.Models.CustomTabModels;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Z.Expressions;
+using NCalc2;
 
 namespace Ext_Dynamics_API.ResourceManagement
 {
@@ -44,12 +40,12 @@ namespace Ext_Dynamics_API.ResourceManagement
                     ValueChanged = false,
                     AssociatedUser = student,
                 };
-                var colNameDictionary = new Dictionary<string, double>();
-                foreach(var col in tableColumns)
+                var expression = new Expression(column.CalcRule);
+                foreach (var col in tableColumns)
                 {
-                    colNameDictionary.Add(col.Name, ((NumericDataColumn)_courseTable[col.Name])[student.Id]);
+                    expression.Parameters[col.Name] = ((NumericDataColumn)_courseTable[col.Name])[student.Id];
                 }
-                row.Value = Eval.Execute<double>(column.CalcRule, colNameDictionary);
+                row.Value = (double)expression.Evaluate();
                 column.Rows.Add(row);
             }
         }

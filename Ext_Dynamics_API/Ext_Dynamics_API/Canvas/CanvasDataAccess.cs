@@ -4,6 +4,7 @@ using Ext_Dynamics_API.Canvas.Enums;
 using Ext_Dynamics_API.Canvas.Enums.Params;
 using Ext_Dynamics_API.Canvas.Models;
 using Ext_Dynamics_API.Canvas.RequestModels;
+using Ext_Dynamics_API.Canvas.ResponseModels;
 using Ext_Dynamics_API.Configuration.Models;
 using Ext_Dynamics_API.Enums;
 using Ext_Dynamics_API.Models.CustomTabModels;

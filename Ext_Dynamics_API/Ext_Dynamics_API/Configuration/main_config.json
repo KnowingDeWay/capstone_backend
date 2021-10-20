@@ -5,5 +5,6 @@
   "token_audience": "user_instructors",
   "token_auth_header": "Authorization",
   "test_db_conn_str": "Server=localhost\\SQLEXPRESS;Initial Catalog=Extensible_Dynamics_Db_Testing;Trusted_Connection=True;",
-  "canvas_base_url": "https://canvas.uts.edu.au/api/v1"
+  "canvas_base_url": "https://canvas.uts.edu.au/api/v1",
+  "canvas_namespace":  "ext_dynamics"
 }

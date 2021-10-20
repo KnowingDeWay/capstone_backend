@@ -15,11 +15,11 @@ using Ext_Dynamics_API.Canvas.Models;
 
 namespace Ext_Dynamics_API.ResourceManagement
 {
-    public class CourseDataTableManager
+    public class CourseDataTableManager : IDisposable
     {
-        private ExtensibleDbContext _dbCtx;
-        private CanvasDataAccess _canvasDataAccess;
-        private SystemConfig _config;
+        private readonly ExtensibleDbContext _dbCtx;
+        private readonly CanvasDataAccess _canvasDataAccess;
+        private readonly SystemConfig _config;
         public List<DataTableStudent> Students { get; set; }
 
         public CourseDataTableManager(ExtensibleDbContext dbCtx, List<DataTableStudent> students = null)
@@ -1056,6 +1056,15 @@ namespace Ext_Dynamics_API.ResourceManagement
                 });
             }
             return updateReq;
+        }
+
+        /// <summary>
+        /// Disposes of any shared and unmanaged resources used by this class (except for the Database Context)
+        /// </summary>
+        public void Dispose()
+        {
+            GC.SuppressFinalize(this);
+            ((IDisposable)_canvasDataAccess).Dispose();
         }
     }
 }

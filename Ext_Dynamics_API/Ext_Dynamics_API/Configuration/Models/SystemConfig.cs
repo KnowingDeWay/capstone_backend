@@ -30,6 +30,9 @@ namespace Ext_Dynamics_API.Configuration.Models
         [JsonProperty(PropertyName = "canvas_base_url")]
         public readonly string canvasBaseUrl;
 
+        [JsonProperty(PropertyName = "canvas_namespace")]
+        public readonly string canvasNamespace;
+
         /// <summary>
         /// Loads the configuration settings from the "main_config.json" file in the build directory under Configuration/Models
         /// </summary>
