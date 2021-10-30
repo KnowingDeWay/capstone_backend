@@ -44,7 +44,6 @@ namespace Ext_Dynamics_API.DataAccess
             modelBuilder.Entity<DataColumnEntry>().ToTable("Data_Column_Entries");
 
             modelBuilder.Entity<UserCustomDataEntry>().Property(x => x.RowVersion).IsRowVersion();
-            modelBuilder.Entity<UserCustomDataEntry>().HasAlternateKey(x => x.ItemName);
             modelBuilder.Entity<UserCustomDataEntry>().ToTable("User_Custom_Data_Entries");
 
             modelBuilder.Entity<Scope>().Property(x => x.RowVersion).IsRowVersion();

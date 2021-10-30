@@ -10,8 +10,11 @@ namespace Ext_Dynamics_API.Models
     public class Scope : EntityBase
     {
         public string Name { get; set; }
-        public string Namespace { get; set; }
-        public int CanvasUserId { get; set; }
+        public int UserId { get; set; }
+
+        [ForeignKey("UserId")]
+        public ApplicationUserAccount User { get; set; }
+        public List<UserCustomDataEntry> CustomDataEntries { get; set; }
         public int CourseId { get; set; }
     }
 }

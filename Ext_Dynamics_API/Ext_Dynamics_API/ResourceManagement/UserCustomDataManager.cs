@@ -23,21 +23,15 @@ namespace Ext_Dynamics_API.ResourceManagement
             _canvasDataAccess = new CanvasDataAccess(_config);
         }
 
-        public bool IsScopeUnique(string scope, int canvasUserId)
+        public bool ScopeExists(string scope, int userId, int courseId)
         {
-            return _dbCtx.Scopes.Where(x => x.Name.Equals(scope) && x.CanvasUserId == canvasUserId).FirstOrDefault() != null;
+            return _dbCtx.Scopes.Where(x => x.Name.Equals(scope) && x.UserId == userId).FirstOrDefault() != null;
         }
 
-        public List<UserCustomDataEntry> InterpretDataAsEntries(CustomDataResponse dataResponse)
+        public List<UserCustomDataEntry> GetUserCustomDataEntries(string scope, int courseId)
         {
             var custDataEntries = new List<UserCustomDataEntry>();
-            foreach(var entry in dataResponse.Data)
-            {
-                var custEntry = new UserCustomDataEntry
-                {
-
-                };
-            }
+            custDataEntries = _dbCtx.UserCustomDataEntries.Where(x => x.Scope.Equals(scope) && x.CourseId == courseId).ToList();
             return custDataEntries;
         }
 

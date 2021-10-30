@@ -181,7 +181,7 @@ namespace Ext_Dynamics_API.Controllers
             {
                 // Rollback token addition
                 _dbCtx.PersonalAccessTokens.Remove(pat);
-                return new NotFoundObjectResult("Failed to Delete User Profile");
+                return new NotFoundObjectResult("Failed to Add Canvas Token");
             }
         }
 
