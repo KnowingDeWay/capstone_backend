@@ -31,8 +31,8 @@ namespace Ext_Dynamics_API.Controllers
         }
 
         [HttpGet]
-        [Route("LoadCustomDataForUser/{scope}/{courseId}")]
-        public IActionResult LoadCustomDataForUser([FromRoute] int scopeId)
+        [Route("LoadCustomDataForUser/{scopeId}/{courseId}")]
+        public IActionResult LoadCustomDataForUser([FromRoute] int scopeId, [FromRoute] int courseId)
         {
             var userToken = _tokenManager.ReadAndValidateToken(Request.Headers[_config.authHeader]);
             var listResponse = new ListResponse<UserCustomDataEntry>();
@@ -51,7 +51,7 @@ namespace Ext_Dynamics_API.Controllers
 
             var sysUserId = _tokenManager.GetUserIdFromToken(decodedToken);
 
-            listResponse.ListContent = _dbCtx.UserCustomDataEntries.Where(x => x.ScopeId == scopeId).ToList();
+            listResponse.ListContent = _dbCtx.UserCustomDataEntries.Where(x => x.ScopeId == scopeId && x.CourseId == courseId).ToList();
             listResponse.ResponseMessage = "Success";
 
             return Ok(listResponse);
@@ -82,8 +82,8 @@ namespace Ext_Dynamics_API.Controllers
             return Ok(listResponse);
         }
 
-        [HttpPut]
-        [Route("AddUserCustomDataEntry/{scopeId}")]
+        [HttpPost]
+        [Route("AddUserCustomDataEntry")]
         public IActionResult AddUserCustomDataEntry([FromBody] UserCustomDataEntry dataEntry)
         {
             var userToken = _tokenManager.ReadAndValidateToken(Request.Headers[_config.authHeader]);
@@ -301,7 +301,7 @@ namespace Ext_Dynamics_API.Controllers
         }
 
         [HttpDelete]
-        [Route("DeleteScope/{scope}")]
+        [Route("DeleteScope/{scopeId}")]
         public IActionResult DeleteScope([FromRoute] int scopeId)
         {
             var userToken = _tokenManager.ReadAndValidateToken(Request.Headers[_config.authHeader]);
