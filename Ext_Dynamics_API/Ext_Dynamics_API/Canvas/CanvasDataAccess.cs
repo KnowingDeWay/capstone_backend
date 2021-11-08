@@ -28,8 +28,10 @@ namespace Ext_Dynamics_API.Canvas
         public CanvasDataAccess(SystemConfig config)
         {
             _config = config;
-            _httpClient = new HttpClient();
-            _httpClient.BaseAddress = new Uri(_config.canvasBaseUrl);
+            _httpClient = new HttpClient
+            {
+                BaseAddress = new Uri(_config.canvasBaseUrl)
+            };
         }
 
         /// <summary>
@@ -37,9 +39,13 @@ namespace Ext_Dynamics_API.Canvas
         /// </summary>
         /// <param name="accessToken">The API key to use to access Canvas</param>
         /// <returns>List&lt;Course>: The courses for which the user is an instructor in</returns>
-        public List<Course> GetInstructorCourses(string accessToken)
+        public List<Course> GetInstructorCourses(string accessToken, string[] inclusionCriteria = null)
         {
             string requestUrl = $"{_config.canvasBaseUrl}/courses?enrollment_type=teacher";
+            if(inclusionCriteria != null)
+            {
+                requestUrl += "&include=";
+            }
             var request = WebRequest.Create(requestUrl);
             request.Headers.Add("Authorization", $"Bearer {accessToken}");
             var response = (HttpWebResponse)request.GetResponse();
@@ -75,10 +81,18 @@ namespace Ext_Dynamics_API.Canvas
         /// <param name="accessToken">The API key to use to access Canvas</param>
         /// <param name="courseId">The id of the course</param>
         /// <param name="enrollmentType">The type of users to search for</param>
+        /// <param name="pageNo">The page number of results to retreive (each page has 10 students). 
+        /// If left empty, it does not get the results in a paginated format
+        /// </param>
         /// <returns>List&lt;User>: The information of the Canvas users</returns>
-        public List<User> GetUsersInCourse(string accessToken, int courseId, EnrollmentParamType enrollmentType)
+        public List<User> GetUsersInCourse(string accessToken, int courseId, EnrollmentParamType enrollmentType, int pageNo = -1)
         {
             string requestUrl = $"{_config.canvasBaseUrl}/courses/{courseId}/users?enrollment_type={enrollmentType}";
+            // Only paginate if a page number has been specified
+            if(pageNo != -1)
+            {
+                requestUrl += $"&page={pageNo}";
+            }
             var request = WebRequest.Create(requestUrl);
             request.Headers.Add("Authorization", $"Bearer {accessToken}");
             var response = (HttpWebResponse)request.GetResponse();

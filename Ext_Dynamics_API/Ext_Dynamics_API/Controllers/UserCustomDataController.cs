@@ -1,9 +1,7 @@
-﻿using Ext_Dynamics_API.Canvas;
-using Ext_Dynamics_API.Configuration.Models;
+﻿using Ext_Dynamics_API.Configuration.Models;
 using Ext_Dynamics_API.DataAccess;
 using Ext_Dynamics_API.Enums;
 using Ext_Dynamics_API.Models;
-using Ext_Dynamics_API.ResourceManagement;
 using Ext_Dynamics_API.ResponseModels;
 using Ext_Dynamics_API.Security;
 using Microsoft.AspNetCore.Authorization;
@@ -58,8 +56,8 @@ namespace Ext_Dynamics_API.Controllers
         }
 
         [HttpGet]
-        [Route("GetCourseScopes/{courseId}")]
-        public IActionResult GetCourseScopes([FromRoute] int courseId)
+        [Route("GetCourseStudentScopes/{courseId}/{studentId}")]
+        public IActionResult GetCourseStudentScopes([FromRoute] int courseId, [FromRoute] int studentId)
         {
             var userToken = _tokenManager.ReadAndValidateToken(Request.Headers[_config.authHeader]);
             var listResponse = new ListResponse<Scope>();
@@ -76,7 +74,11 @@ namespace Ext_Dynamics_API.Controllers
                 return new UnauthorizedObjectResult(listResponse);
             }
 
-            listResponse.ListContent = _dbCtx.Scopes.Where(x => x.CourseId == courseId).ToList();
+            listResponse.ListContent = _dbCtx.Scopes.Where(x => x.CourseId == courseId && x.CanvasStudentId == studentId).ToList();
+            foreach(var scope in listResponse.ListContent)
+            {
+                scope.CustomDataEntries = _dbCtx.UserCustomDataEntries.Where(x => x.ScopeId == scope.Id).ToList();
+            }
             listResponse.ResponseMessage = "Successful retreival of scopes";
 
             return Ok(listResponse);
@@ -219,8 +221,8 @@ namespace Ext_Dynamics_API.Controllers
         }
 
         [HttpPost]
-        [Route("AddScope/{scopeName}/{courseId}")]
-        public IActionResult AddScope([FromRoute] string scopeName, [FromRoute] int courseId)
+        [Route("AddScope/{scopeName}/{courseId}/{studentId}")]
+        public IActionResult AddScope([FromRoute] string scopeName, [FromRoute] int courseId, [FromRoute] int studentId)
         {
             var userToken = _tokenManager.ReadAndValidateToken(Request.Headers[_config.authHeader]);
             JwtSecurityToken decodedToken;
@@ -237,11 +239,23 @@ namespace Ext_Dynamics_API.Controllers
 
             var sysUserId = _tokenManager.GetUserIdFromToken(decodedToken);
 
+            var existingScope = 
+                _dbCtx.Scopes.Where(x => x.Name.Equals(scopeName) && x.CourseId == courseId && x.CanvasStudentId == studentId)
+                .FirstOrDefault();
+
+            // Scope names must be unique (two scopes cannot have the same name IF BOTH of them refer to the same student
+            // who is ALSO in the same course)
+            if (existingScope != null)
+            {
+                return new BadRequestObjectResult("A scope with this name already exists!");
+            }
+
             var newScope = new Scope
             {
                 Name = scopeName,
                 CourseId = courseId,
-                UserId = sysUserId
+                UserId = sysUserId,
+                CanvasStudentId = studentId
             };
 
             _dbCtx.Scopes.Add(newScope);
@@ -260,7 +274,7 @@ namespace Ext_Dynamics_API.Controllers
         }
 
         [HttpPut]
-        [Route("EditScope/{scopeId}{newName}")]
+        [Route("EditScope/{scopeId}/{newName}")]
         public IActionResult EditScope([FromRoute] int scopeId, [FromRoute] string newName)
         {
             var userToken = _tokenManager.ReadAndValidateToken(Request.Headers[_config.authHeader]);

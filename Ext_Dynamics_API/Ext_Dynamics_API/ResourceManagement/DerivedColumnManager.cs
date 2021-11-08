@@ -1,6 +1,7 @@
 ﻿using Ext_Dynamics_API.Models.CustomTabModels;
 using System.Collections.Generic;
 using NCalc2;
+using System;
 
 namespace Ext_Dynamics_API.ResourceManagement
 {
@@ -45,7 +46,14 @@ namespace Ext_Dynamics_API.ResourceManagement
                 {
                     expression.Parameters[col.Name] = ((NumericDataColumn)_courseTable[col.Name])[student.Id];
                 }
-                row.Value = (double)expression.Evaluate();
+                try
+                {
+                    row.Value = (double)expression.Evaluate();
+                }
+                catch(Exception)
+                {
+                    row.Value = 0;
+                }
                 column.Rows.Add(row);
             }
         }

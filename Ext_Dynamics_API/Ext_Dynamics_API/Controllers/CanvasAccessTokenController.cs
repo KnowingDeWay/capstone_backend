@@ -6,13 +6,11 @@ using Ext_Dynamics_API.RequestModels;
 using Ext_Dynamics_API.ResponseModels;
 using Ext_Dynamics_API.Security;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace Ext_Dynamics_API.Controllers
 {

@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Ext_Dynamics_API.Models
 {
@@ -16,5 +12,6 @@ namespace Ext_Dynamics_API.Models
         public ApplicationUserAccount User { get; set; }
         public List<UserCustomDataEntry> CustomDataEntries { get; set; }
         public int CourseId { get; set; }
+        public int CanvasStudentId { get; set; } // The id of the student on Canvas for which this scope is relevant to
     }
 }
